@@ -1,0 +1,274 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureAI - Message Security Checker</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0b1120;
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        header {
+            padding: 22px 8%;
+            border-bottom: 1px solid #263247;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h2 {
+            color: #38bdf8;
+            margin: 0;
+        }
+
+        header span {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        main {
+            max-width: 760px;
+            margin: 65px auto;
+            padding: 20px;
+        }
+
+        .tag {
+            color: #38bdf8;
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-size: 42px;
+            margin: 15px 0;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            line-height: 1.7;
+        }
+
+        .panel {
+            margin-top: 30px;
+            background: #151f32;
+            border: 1px solid #29374e;
+            border-radius: 16px;
+            padding: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 160px;
+            resize: vertical;
+            background: #0b1120;
+            color: white;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 15px;
+            font: inherit;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: #38bdf8;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 16px;
+            padding: 14px;
+            background: #0284c7;
+            color: white;
+            border: none;
+            border-radius: 9px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0369a1;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        #result {
+            display: none;
+            margin-top: 22px;
+            padding: 20px;
+            border-radius: 12px;
+            background: #0b1120;
+            border: 1px solid #334155;
+        }
+
+        #risk {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        #warnings {
+            padding-left: 20px;
+            color: #cbd5e1;
+            line-height: 1.8;
+        }
+
+        .note {
+            font-size: 12px;
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-top: 18px;
+        }
+
+        footer {
+            text-align: center;
+            color: #64748b;
+            padding: 25px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            main {
+                margin: 35px auto;
+            }
+
+            h1 {
+                font-size: 32px;
+            }
+
+            header {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h2>🛡 SecureAI</h2>
+        <span>Message Security Checker</span>
+    </header>
+
+    <main>
+        <p class="tag">Stay alert. Stay secure.</p>
+
+        <h1>Check Before You Click.</h1>
+
+        <p class="subtitle">
+            Analyze suspicious messages for common phishing and scam
+            warning signs with SecureAI.
+        </p>
+
+        <section class="panel">
+            <label for="message">Paste your message below</label>
+
+            <textarea
+                id="message"
+                maxlength="5000"
+                placeholder="Example: Your account is locked. Verify your account immediately..."
+            ></textarea>
+
+            <button id="analyseBtn" onclick="analyseMessage()">
+                Analyse Message
+            </button>
+
+            <div id="result" aria-live="polite">
+                <h3>Analysis Result</h3>
+                <p id="score"></p>
+                <p id="risk"></p>
+                <h4>Warning Signs</h4>
+                <ul id="warnings"></ul>
+            </div>
+
+            <p class="note">
+                This tool uses basic rule-based checks. Results are
+                indicative only and cannot guarantee that a message
+                is safe or malicious.
+            </p>
+        </section>
+    </main>
+
+    <footer>
+        SecureAI · Built with Python and Flask
+    </footer>
+
+    <script>
+        async function analyseMessage() {
+            const message = document.getElementById("message").value.trim();
+            const button = document.getElementById("analyseBtn");
+            const resultBox = document.getElementById("result");
+
+            if (!message) {
+                alert("Please enter a message first.");
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = "Analysing...";
+            resultBox.style.display = "block";
+            document.getElementById("risk").textContent = "Checking...";
+            document.getElementById("warnings").replaceChildren();
+
+            try {
+                const response = await fetch("/analyse", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Analysis request failed.");
+                }
+
+                const data = await response.json();
+
+                document.getElementById("score").textContent =
+                    "Risk Score: " + data.score + "/100";
+
+                const riskElement = document.getElementById("risk");
+                riskElement.textContent = "Risk Level: " + data.risk;
+                riskElement.style.color =
+                    data.risk === "High" ? "#f87171" :
+                    data.risk === "Medium" ? "#fbbf24" : "#4ade80";
+
+                const warningList = document.getElementById("warnings");
+
+                data.warnings.forEach(function(warning) {
+                    const item = document.createElement("li");
+                    item.textContent = warning;
+                    warningList.appendChild(item);
+                });
+            } catch (error) {
+                document.getElementById("risk").textContent =
+                    "Could not analyse the message. Please try again.";
+            } finally {
+                button.disabled = false;
+                button.textContent = "Analyse Message";
+            }
+        }
+    </script>
+</body>
+</html>
