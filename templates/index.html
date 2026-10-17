@@ -4,160 +4,423 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecureAI - Message Security Checker</title>
+    <title>SecureAI | Message Security</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
+        :root {
+            --bg: #080d18;
+            --panel: #101827;
+            --border: #243148;
+            --text: #f1f5f9;
+            --muted: #91a0b7;
+            --blue: #42b9ff;
+            --purple: #8b7cff;
+        }
+
         * {
             box-sizing: border-box;
         }
 
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
-            background: #0b1120;
-            color: #f8fafc;
             min-height: 100vh;
+            font-family: "Inter", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(ellipse at 15% 0%, #132b4c 0%, transparent 38%),
+                radial-gradient(ellipse at 90% 20%, #21183e 0%, transparent 30%),
+                var(--bg);
         }
 
-        header {
-            padding: 22px 8%;
-            border-bottom: 1px solid #263247;
+        button, textarea {
+            font: inherit;
+        }
+
+        .navbar {
+            height: 76px;
+            padding: 0 7%;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #ffffff12;
+            background: #080d18a8;
         }
 
-        header h2 {
-            color: #38bdf8;
-            margin: 0;
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 21px;
+            font-weight: 800;
+            letter-spacing: -0.7px;
         }
 
-        header span {
-            color: #94a3b8;
-            font-size: 14px;
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            display: grid;
+            place-items: center;
+            border-radius: 13px;
+            color: var(--blue);
+            background: #42b9ff18;
+            border: 1px solid #42b9ff45;
+            font-size: 22px;
+        }
+
+        .brand span {
+            color: var(--blue);
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: #a9b8cc;
+            font-size: 12px;
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 9px 13px;
+            background: #101827;
+        }
+
+        .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 12px #4ade8070;
         }
 
         main {
-            max-width: 760px;
-            margin: 65px auto;
-            padding: 20px;
+            max-width: 1000px;
+            margin: auto;
+            padding: 65px 22px 45px;
         }
 
-        .tag {
-            color: #38bdf8;
-            font-size: 13px;
-            letter-spacing: 2px;
+        .hero {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--blue);
+            background: #42b9ff12;
+            border: 1px solid #42b9ff30;
+            padding: 9px 14px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.3px;
             text-transform: uppercase;
         }
 
         h1 {
-            font-size: 42px;
-            margin: 15px 0;
+            font-size: clamp(36px, 6vw, 58px);
+            line-height: 1.12;
+            letter-spacing: -2.5px;
+            margin: 22px 0 16px;
         }
 
-        .subtitle {
-            color: #94a3b8;
-            line-height: 1.7;
+        h1 span {
+            background: linear-gradient(90deg, #42b9ff, #9a8bff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
 
-        .panel {
-            margin-top: 30px;
-            background: #151f32;
-            border: 1px solid #29374e;
-            border-radius: 16px;
+        .hero p {
+            color: var(--muted);
+            max-width: 600px;
+            margin: auto;
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .card {
+            background: linear-gradient(145deg, #121d2f, #0e1625);
+            border: 1px solid var(--border);
+            border-radius: 20px;
             padding: 25px;
+            box-shadow: 0 20px 60px #00000018;
         }
 
-        label {
-            display: block;
-            margin-bottom: 12px;
-            font-weight: bold;
+        .card-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 17px;
+            letter-spacing: -0.3px;
+        }
+
+        .step {
+            color: #8494ac;
+            font-size: 11px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            padding: 6px 8px;
+        }
+
+        .description {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.7;
+            margin: 12px 0 20px;
         }
 
         textarea {
             width: 100%;
-            min-height: 160px;
+            min-height: 205px;
             resize: vertical;
-            background: #0b1120;
-            color: white;
-            border: 1px solid #334155;
-            border-radius: 10px;
-            padding: 15px;
-            font: inherit;
+            background: #080f1d;
+            border: 1px solid #2b3a52;
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--text);
+            font-size: 13px;
+            line-height: 1.8;
             outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         textarea:focus {
-            border-color: #38bdf8;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px #42b9ff12;
         }
 
-        button {
+        textarea::placeholder {
+            color: #62718a;
+        }
+
+        .input-footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 9px;
+            font-size: 11px;
+            color: #7888a1;
+        }
+
+        .primary-btn {
             width: 100%;
-            margin-top: 16px;
-            padding: 14px;
-            background: #0284c7;
-            color: white;
-            border: none;
-            border-radius: 9px;
-            font-size: 16px;
-            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            border: 0;
+            border-radius: 11px;
+            color: #06111d;
+            background: linear-gradient(100deg, #42b9ff, #83a9ff);
+            font-weight: 800;
+            font-size: 13px;
             cursor: pointer;
+            transition: transform 0.2s, filter 0.2s;
         }
 
-        button:hover {
-            background: #0369a1;
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.08);
         }
 
-        button:disabled {
-            opacity: 0.6;
+        .primary-btn:disabled {
+            opacity: 0.65;
             cursor: wait;
+            transform: none;
         }
 
-        #result {
+        .result-card {
+            min-height: 340px;
+        }
+
+        .result-placeholder {
+            text-align: center;
+            padding: 38px 12px 22px;
+        }
+
+        .shield {
+            height: 76px;
+            width: 76px;
+            display: grid;
+            place-items: center;
+            margin: 0 auto 22px;
+            border: 1px solid #42b9ff35;
+            border-radius: 24px;
+            background: linear-gradient(145deg, #42b9ff17, #8b7cff15);
+            font-size: 34px;
+            box-shadow: 0 0 40px #42b9ff0c;
+        }
+
+        .result-placeholder h3 {
+            font-size: 16px;
+            margin: 0 0 10px;
+        }
+
+        .result-placeholder p {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.8;
+            max-width: 250px;
+            margin: auto;
+        }
+
+        #resultDetails {
             display: none;
-            margin-top: 22px;
-            padding: 20px;
-            border-radius: 12px;
-            background: #0b1120;
-            border: 1px solid #334155;
+            margin-top: 24px;
+        }
+
+        .risk-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .risk-label {
+            font-size: 12px;
+            color: var(--muted);
         }
 
         #risk {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 10px 0;
+            margin: 7px 0 0;
+            font-size: 23px;
         }
 
-        #warnings {
-            padding-left: 20px;
-            color: #cbd5e1;
-            line-height: 1.8;
+        .risk-badge {
+            border-radius: 30px;
+            padding: 8px 11px;
+            font-size: 11px;
+            font-weight: 700;
+            background: #42b9ff12;
+            color: var(--blue);
         }
 
-        .note {
-            font-size: 12px;
-            color: #94a3b8;
-            line-height: 1.6;
-            margin-top: 18px;
+        .meter {
+            height: 7px;
+            background: #263247;
+            border-radius: 10px;
+            overflow: hidden;
         }
 
-        footer {
-            text-align: center;
-            color: #64748b;
-            padding: 25px;
+        #meterFill {
+            height: 100%;
+            width: 0%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #4ade80, #fbbf24, #f87171);
+            transition: width 0.5s ease;
+        }
+
+        .score-caption {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 9px;
+        }
+
+        .findings-title {
+            margin: 25px 0 12px;
             font-size: 13px;
         }
 
-        @media (max-width: 600px) {
+        #warnings {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        #warnings li {
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            padding: 11px 0;
+            border-bottom: 1px solid #ffffff0b;
+            color: #c6d0df;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        #warnings li::before {
+            content: "!";
+            display: grid;
+            place-items: center;
+            flex: 0 0 19px;
+            height: 19px;
+            border-radius: 6px;
+            background: #fbbf2415;
+            color: #fbbf24;
+            font-weight: 800;
+        }
+
+        .tip {
+            margin-top: 18px;
+            padding: 13px;
+            background: #42b9ff0a;
+            border: 1px solid #42b9ff20;
+            border-radius: 10px;
+            color: #a7bdd2;
+            font-size: 11px;
+            line-height: 1.8;
+        }
+
+        .bottom-note {
+            text-align: center;
+            margin-top: 30px;
+            color: #75849a;
+            font-size: 11px;
+            line-height: 1.8;
+        }
+
+        footer {
+            border-top: 1px solid #ffffff10;
+            padding: 22px;
+            text-align: center;
+            color: #65748a;
+            font-size: 11px;
+        }
+
+        @media (max-width: 720px) {
+            .navbar {
+                padding: 0 20px;
+            }
+
             main {
-                margin: 35px auto;
+                padding-top: 42px;
+            }
+
+            .workspace {
+                grid-template-columns: 1fr;
             }
 
             h1 {
-                font-size: 32px;
+                letter-spacing: -1.5px;
             }
 
-            header {
+            .hero {
+                margin-bottom: 28px;
+            }
+
+            .card {
                 padding: 20px;
             }
         }
@@ -165,70 +428,140 @@
 </head>
 
 <body>
-    <header>
-        <h2>🛡 SecureAI</h2>
-        <span>Message Security Checker</span>
-    </header>
+    <nav class="navbar">
+        <div class="brand">
+            <div class="brand-icon">⬡</div>
+            Secure<span>AI</span>
+        </div>
+
+        <div class="status">
+            <span class="dot"></span>
+            Local analysis tool
+        </div>
+    </nav>
 
     <main>
-        <p class="tag">Stay alert. Stay secure.</p>
+        <section class="hero">
+            <div class="eyebrow">✦ Smart message analysis</div>
 
-        <h1>Check Before You Click.</h1>
+            <h1>Think before you <span>click.</span></h1>
 
-        <p class="subtitle">
-            Analyze suspicious messages for common phishing and scam
-            warning signs with SecureAI.
-        </p>
-
-        <section class="panel">
-            <label for="message">Paste your message below</label>
-
-            <textarea
-                id="message"
-                maxlength="5000"
-                placeholder="Example: Your account is locked. Verify your account immediately..."
-            ></textarea>
-
-            <button id="analyseBtn" onclick="analyseMessage()">
-                Analyse Message
-            </button>
-
-            <div id="result" aria-live="polite">
-                <h3>Analysis Result</h3>
-                <p id="score"></p>
-                <p id="risk"></p>
-                <h4>Warning Signs</h4>
-                <ul id="warnings"></ul>
-            </div>
-
-            <p class="note">
-                This tool uses basic rule-based checks. Results are
-                indicative only and cannot guarantee that a message
-                is safe or malicious.
+            <p>
+                Check messages for common phishing and scam warning signs.
+                Understand potential risks before taking action.
             </p>
         </section>
+
+        <section class="workspace">
+            <div class="card">
+                <div class="card-heading">
+                    <h2>Analyse a message</h2>
+                    <span class="step">STEP 01</span>
+                </div>
+
+                <p class="description">
+                    Paste the message you want to check. Never include
+                    real passwords, OTPs or private information.
+                </p>
+
+                <textarea
+                    id="message"
+                    maxlength="5000"
+                    placeholder="Paste a suspicious message here..."
+                ></textarea>
+
+                <div class="input-footer">
+                    <span>Plain text only</span>
+                    <span id="charCount">0 / 5000</span>
+                </div>
+
+                <button class="primary-btn" id="analyseBtn"
+                    onclick="analyseMessage()">
+                    Analyse message <span>→</span>
+                </button>
+
+                <div class="tip">
+                    <strong>Security tip</strong><br>
+                    Never share your password or OTP, even if a message
+                    claims to come from a trusted organisation.
+                </div>
+            </div>
+
+            <div class="card result-card">
+                <div class="card-heading">
+                    <h2>Security report</h2>
+                    <span class="step">STEP 02</span>
+                </div>
+
+                <div id="placeholder" class="result-placeholder">
+                    <div class="shield">🛡️</div>
+                    <h3>Ready to analyse</h3>
+                    <p>
+                        Your results will appear here after you submit
+                        a message for checking.
+                    </p>
+                </div>
+
+                <div id="resultDetails" aria-live="polite">
+                    <div class="risk-row">
+                        <div>
+                            <div class="risk-label">Estimated risk level</div>
+                            <h3 id="risk">—</h3>
+                        </div>
+                        <div id="riskBadge" class="risk-badge">Not assessed</div>
+                    </div>
+
+                    <div class="meter">
+                        <div id="meterFill"></div>
+                    </div>
+
+                    <div class="score-caption">
+                        <span>Risk score</span>
+                        <strong id="score">0 / 100</strong>
+                    </div>
+
+                    <h4 class="findings-title">Detected warning signs</h4>
+                    <ul id="warnings"></ul>
+
+                    <div class="tip">
+                        This score is based on simple keyword rules, not
+                        a verified probability of fraud.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <p class="bottom-note">
+            SecureAI is a learning prototype. A low score does not
+            guarantee that a message is safe.
+        </p>
     </main>
 
     <footer>
-        SecureAI · Built with Python and Flask
+        SecureAI · Built with Flask · Security starts with awareness
     </footer>
 
     <script>
+        const messageInput = document.getElementById("message");
+
+        messageInput.addEventListener("input", function () {
+            document.getElementById("charCount").textContent =
+                messageInput.value.length + " / 5000";
+        });
+
         async function analyseMessage() {
-            const message = document.getElementById("message").value.trim();
+            const message = messageInput.value.trim();
             const button = document.getElementById("analyseBtn");
-            const resultBox = document.getElementById("result");
 
             if (!message) {
-                alert("Please enter a message first.");
+                messageInput.focus();
+                messageInput.style.borderColor = "#f87171";
                 return;
             }
 
+            messageInput.style.borderColor = "";
             button.disabled = true;
             button.textContent = "Analysing...";
-            resultBox.style.display = "block";
-            document.getElementById("risk").textContent = "Checking...";
-            document.getElementById("warnings").replaceChildren();
 
             try {
                 const response = await fetch("/analyse", {
@@ -236,37 +569,59 @@
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ message: message })
+                    body: JSON.stringify({ message })
                 });
 
                 if (!response.ok) {
-                    throw new Error("Analysis request failed.");
+                    throw new Error("Server returned an error.");
                 }
 
                 const data = await response.json();
 
-                document.getElementById("score").textContent =
-                    "Risk Score: " + data.score + "/100";
+                document.getElementById("placeholder").style.display = "none";
+                document.getElementById("resultDetails").style.display = "block";
 
-                const riskElement = document.getElementById("risk");
-                riskElement.textContent = "Risk Level: " + data.risk;
-                riskElement.style.color =
-                    data.risk === "High" ? "#f87171" :
-                    data.risk === "Medium" ? "#fbbf24" : "#4ade80";
+                document.getElementById("score").textContent =
+                    data.score + " / 100";
+
+                document.getElementById("risk").textContent = data.risk;
+
+                const badge = document.getElementById("riskBadge");
+                badge.textContent = data.risk + " risk";
+
+                const riskColors = {
+                    Low: ["#4ade80", "#4ade8018"],
+                    Medium: ["#fbbf24", "#fbbf2418"],
+                    High: ["#f87171", "#f8717118"]
+                };
+
+                const colors = riskColors[data.risk] || riskColors.Low;
+                document.getElementById("risk").style.color = colors[0];
+                badge.style.color = colors[0];
+                badge.style.background = colors[1];
+
+                document.getElementById("meterFill").style.width =
+                    Math.min(100, Math.max(0, data.score)) + "%";
 
                 const warningList = document.getElementById("warnings");
+                warningList.replaceChildren();
 
-                data.warnings.forEach(function(warning) {
+                data.warnings.forEach(function (warning) {
                     const item = document.createElement("li");
                     item.textContent = warning;
                     warningList.appendChild(item);
                 });
+
             } catch (error) {
-                document.getElementById("risk").textContent =
-                    "Could not analyse the message. Please try again.";
+                document.getElementById("placeholder").style.display = "block";
+                document.getElementById("placeholder").querySelector("h3").textContent =
+                    "Analysis failed";
+                document.getElementById("placeholder").querySelector("p").textContent =
+                    "Please check that your Flask server is running, then try again.";
+                document.getElementById("resultDetails").style.display = "none";
             } finally {
                 button.disabled = false;
-                button.textContent = "Analyse Message";
+                button.innerHTML = 'Analyse message <span>→</span>';
             }
         }
     </script>
