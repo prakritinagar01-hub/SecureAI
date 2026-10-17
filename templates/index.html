@@ -424,6 +424,54 @@
                 padding: 20px;
             }
         }
+
+        
+.url-checker {
+    width: 90%;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 25px;
+    background: #ffffff;
+    color: #222222;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+    box-sizing: border-box;
+    position: relative;
+    z-index: 10;
+}
+
+.url-checker h2 {
+    margin-bottom: 12px;
+    color: #222222;
+}
+
+.url-checker p {
+    margin-bottom: 18px;
+}
+
+.url-checker input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    border: 1px solid #cccccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+.url-checker button {
+    padding: 12px 22px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+#urlResult {
+    margin-top: 15px;
+    overflow-wrap: anywhere;
+}
+
     </style>
 </head>
 
@@ -624,6 +672,79 @@
                 button.innerHTML = 'Analyse message <span>→</span>';
             }
         }
+        
+        async function checkURL() {
+            const url = document.getElementById("urlInput").value.trim();
+            const resultBox = document.getElementById("urlResult");
+            const button = document.getElementById("urlBtn");
+
+            if (!url) {
+                resultBox.textContent = "Please enter a URL first.";
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = "Checking...";
+
+            try {
+                const response = await fetch("/analyse-url", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                if (!response.ok) {
+                    throw new Error("URL analysis failed");
+                }
+
+                const data = await response.json();
+
+                resultBox.replaceChildren();
+
+                const heading = document.createElement("h3");
+                heading.textContent = "Risk: " + data.risk +
+                    " (" + data.score + "/100)";
+                resultBox.appendChild(heading);
+
+                const list = document.createElement("ul");
+
+                data.warnings.forEach(function (warning) {
+                    const item = document.createElement("li");
+                    item.textContent = warning;
+                    list.appendChild(item);
+                });
+
+                resultBox.appendChild(list);
+
+            } catch (error) {
+                resultBox.textContent =
+                    "Could not analyse URL. Check that the server is running.";
+            } finally {
+                button.disabled = false;
+                button.textContent = "Check URL";
+            }
+        }
+
     </script>
+    
+<section class="url-checker">
+    <h2>🔗 Phishing URL Checker</h2>
+    <p>Check a suspicious URL for common phishing warning signs.</p>
+
+    <input
+        type="text"
+        id="urlInput"
+        placeholder="Enter a suspicious URL..."
+    />
+
+    <button id="urlBtn" onclick="checkURL()">
+        Check URL
+    </button>
+
+    <div id="urlResult"></div>
+</section>
+
 </body>
 </html>
