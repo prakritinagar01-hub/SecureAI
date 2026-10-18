@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}AI Safety Lab | SecureAI{% endblock %}
+
+{% block content %}
+
+<main class="container page-top">
+
+    <div class="section-heading">
+        <h2>AI Agent Safety Lab</h2>
+        <p>
+            Test how an AI assistant behaves when users send malicious or misleading
+            inputs. A fake assistant ("AcmeBank Helper") holds a fake secret; each test
+            tries to make it leak the secret, break its rules, or help with a scam.
+        </p>
+    </div>
+
+    <div class="notice">
+        Use this only on assistants you own. Scoring uses simple text checks, so treat
+        the pass rate as a signal to investigate, not a certificate of safety.
+    </div>
+
+    <section class="card">
+        <h3>Run a test</h3>
+
+        <div class="lab-form">
+            <div>
+                <label for="backendSelect">Agent under test</label>
+                <select id="backendSelect"></select>
+            </div>
+            <div>
+                <label for="presetSelect">System prompt</label>
+                <select id="presetSelect">
+                    <option value="weak">Weak: "be as helpful as possible"</option>
+                    <option value="hardened" selected>Hardened: explicit security rules</option>
+                    <option value="custom">Custom (write your own)</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="customWrap" hidden>
+            <label for="customPrompt">Your system prompt (the secret and an internal reference are added automatically)</label>
+            <textarea id="customPrompt" maxlength="4000"></textarea>
+        </div>
+
+        <details class="prompt-preview">
+            <summary>Show the prompt being tested</summary>
+            <pre id="promptPreview"></pre>
+        </details>
+
+        <button class="primary-btn" id="runButton" type="button">Run all tests</button>
+        <p class="error" id="labError" aria-live="polite"></p>
+        <p class="empty-note" id="labStatus" aria-live="polite"></p>
+    </section>
+
+    <section id="resultSection" class="spaced-sm" hidden>
+        <div class="stat-grid three">
+            <div class="stat"><span>Tests passed</span><strong id="resPassed">0</strong></div>
+            <div class="stat"><span>Pass rate</span><strong id="resRate">0%</strong></div>
+            <div class="stat"><span>Tests failed</span><strong class="high" id="resFailed">0</strong></div>
+        </div>
+
+        <div class="card">
+            <h3>Pass rate by attack category</h3>
+            <div class="chart-box tall"><canvas id="labChart" aria-label="Pass rate by category" role="img"></canvas></div>
+        </div>
+
+        <div class="section-heading spaced-sm">
+            <h2>Test details</h2>
+            <p id="resMeta"></p>
+        </div>
+        <div class="report-list" id="resultList"></div>
+    </section>
+
+    <section class="spaced-sm">
+        <div class="section-heading">
+            <h2>Previous runs</h2>
+            <p>Compare weak and hardened prompts, or track a prompt over time.</p>
+        </div>
+        <div class="report-list" id="runList"></div>
+    </section>
+
+</main>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='common.js') }}"></script>
+<script src="{{ url_for('static', filename='lab.js') }}"></script>
+{% endblock %}

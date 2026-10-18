@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Stay Safe | SecureAI{% endblock %}
+
+{% block content %}
+
+<header class="hero compact">
+    <div class="tag">CYBERSECURITY AWARENESS</div>
+    <h1>How to avoid <span>phishing.</span></h1>
+    <p>
+        Phishing tricks you into sharing passwords, OTPs or money. These habits
+        protect you even when a message looks completely real.
+    </p>
+</header>
+
+<main class="container">
+
+    <section>
+        <div class="section-heading">
+            <h2>Red flags to watch for</h2>
+            <p>If a message shows even one of these, stop and verify.</p>
+        </div>
+
+        <div class="features">
+            <article class="feature">
+                <h3>Urgency and threats</h3>
+                <p>"Your account will be blocked in 24 hours." Scammers rush you so you do not think.</p>
+            </article>
+            <article class="feature">
+                <h3>Requests for OTP or PIN</h3>
+                <p>No genuine bank, company or government office will ask for your OTP, PIN or password.</p>
+            </article>
+            <article class="feature">
+                <h3>Prizes you never entered</h3>
+                <p>Lottery wins, free gifts and "claim your reward" messages are almost always scams.</p>
+            </article>
+            <article class="feature">
+                <h3>Strange links</h3>
+                <p>Shortened links, IP addresses, extra words like "secure-login" or an @ inside the address.</p>
+            </article>
+            <article class="feature">
+                <h3>Payment before a reward</h3>
+                <p>Being asked to pay a "processing fee" to receive money or a prize is a classic trick.</p>
+            </article>
+            <article class="feature">
+                <h3>Unknown sender, personal tone</h3>
+                <p>Unexpected messages from unknown numbers, or from a "friend" asking for urgent money.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="spaced">
+        <div class="section-heading">
+            <h2>Good habits</h2>
+            <p>Small routines that make you much harder to scam.</p>
+        </div>
+
+        <div class="tips-grid">
+            <div class="card tip-card">
+                <h3>Before you click</h3>
+                <ul class="tip-list">
+                    <li>Do not tap links in unexpected SMS, email or WhatsApp messages.</li>
+                    <li>Type the website address yourself or use the official app.</li>
+                    <li>Check that the address starts with https and the domain is spelled correctly.</li>
+                    <li>Scan the link here if you are unsure.</li>
+                </ul>
+            </div>
+
+            <div class="card tip-card">
+                <h3>Protect your accounts</h3>
+                <ul class="tip-list">
+                    <li>Use a different strong password for every important account.</li>
+                    <li>Turn on two-factor authentication wherever it is offered.</li>
+                    <li>Use a password manager instead of reusing passwords.</li>
+                    <li>Keep your phone, apps and browser updated.</li>
+                </ul>
+            </div>
+
+            <div class="card tip-card">
+                <h3>Handle calls and chats</h3>
+                <ul class="tip-list">
+                    <li>Hang up on callers who ask for OTPs, card numbers or remote access.</li>
+                    <li>Never install screen-sharing apps because a stranger asked you to.</li>
+                    <li>Call your bank using the number printed on your card or official website.</li>
+                    <li>Talk to family before sending money after an "emergency" message.</li>
+                </ul>
+            </div>
+
+            <div class="card tip-card">
+                <h3>Payments and UPI</h3>
+                <ul class="tip-list">
+                    <li>You never need to enter your UPI PIN to receive money.</li>
+                    <li>Be careful with QR codes: scanning a QR code is for paying, not receiving.</li>
+                    <li>Check the payee name before you confirm any payment.</li>
+                    <li>Be wary of fake customer-care numbers found through search results.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="spaced">
+        <div class="section-heading">
+            <h2>If you already clicked or shared something</h2>
+            <p>Act quickly. The first hour matters most.</p>
+        </div>
+
+        <div class="card">
+            <ol class="steps">
+                <li><strong>Stop engaging.</strong> Do not reply, call back or click anything else.</li>
+                <li><strong>Change your passwords</strong> for the affected account and any account that reused it.</li>
+                <li><strong>Call your bank immediately</strong> if you shared card, OTP or UPI details, and ask them to block the card or account.</li>
+                <li><strong>Turn on two-factor authentication</strong> and check recent login activity.</li>
+                <li><strong>Report it.</strong> In India, call the National Cyber Crime Helpline <strong>1930</strong> or file a complaint at <strong>cybercrime.gov.in</strong>.</li>
+            </ol>
+        </div>
+
+        <p class="more-link"><a href="{{ url_for('home') }}#scanner">Scan a suspicious message or link &rarr;</a></p>
+    </section>
+
+</main>
+
+{% endblock %}

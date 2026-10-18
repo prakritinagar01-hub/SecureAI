@@ -4,6 +4,7 @@ const COLORS = { High: "#fb7185", Medium: "#fbbf24", Low: "#4ade80" };
 
 let riskChart = null;
 let dailyChart = null;
+let categoryChart = null;
 let searchTimer = null;
 
 function currentFilters() {
@@ -11,6 +12,8 @@ function currentFilters() {
     const q = document.getElementById("searchInput").value.trim();
     const type = document.getElementById("typeFilter").value;
     const risk = document.getElementById("riskFilter").value;
+    const category = document.getElementById("categoryFilter").value;
+    if (category) params.set("category", category);
     if (q) params.set("q", q);
     if (type) params.set("type", type);
     if (risk) params.set("risk", risk);
@@ -50,6 +53,33 @@ function drawCharts(stats) {
         }
     });
 
+    const cats = stats.by_category || [];
+    document.getElementById("categoryEmpty").hidden = cats.length > 0;
+    if (categoryChart) categoryChart.destroy();
+    categoryChart = new Chart(document.getElementById("categoryChart"), {
+        type: "bar",
+        data: {
+            labels: cats.map(function (c) { return c.category; }),
+            datasets: [{
+                label: "Scans",
+                data: cats.map(function (c) { return c.count; }),
+                backgroundColor: cats.map(function (c) {
+                    return c.category === "Prompt injection attempt" ? "#fbbf24" : "#67e8f9";
+                }),
+                borderRadius: 6
+            }]
+        },
+        options: {
+            indexAxis: "y",
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, ticks: { color: "#94a3b8", precision: 0 }, grid: { color: "#1e293b" } },
+                y: { ticks: { color: "#cbd5e1" }, grid: { display: false } }
+            }
+        }
+    });
+
     if (dailyChart) dailyChart.destroy();
     dailyChart = new Chart(document.getElementById("dailyChart"), {
         type: "bar",
@@ -81,7 +111,7 @@ async function loadStats() {
     const stats = await fetchJSON("/api/stats");
     document.getElementById("statTotal").textContent = stats.total;
     document.getElementById("statHigh").textContent = stats.by_risk.High;
-    document.getElementById("statMedium").textContent = stats.by_risk.Medium;
+    document.getElementById("statInjection").textContent = stats.injection_attempts;
     document.getElementById("statAvg").textContent = stats.average_score;
     drawCharts(stats);
 }
@@ -119,14 +149,28 @@ function buildReport(report) {
     scanned.className = "report-input";
     scanned.textContent = report.input;
 
+    const chips = document.createElement("div");
+    chips.className = "chips";
+    report.categories.forEach(function (name) { chips.appendChild(makeChip(name)); });
+
     const warnings = document.createElement("p");
     warnings.textContent = "Warnings: " + report.warnings.join(", ");
+
+    const aiLine = document.createElement("p");
+    if (report.ai) {
+        aiLine.textContent = "AI (" + report.ai.score + "/100): " + (report.ai.summary || report.ai.risk) +
+            " · rules: " + report.rule_score + "/100";
+    }
 
     const time = document.createElement("p");
     time.className = "report-meta";
     time.textContent = "Scanned: " + formatServerTime(report.created_at);
 
-    article.append(head, scanned, warnings, time);
+    article.append(head, scanned);
+    if (report.categories.length) article.appendChild(chips);
+    article.appendChild(warnings);
+    if (report.ai) article.appendChild(aiLine);
+    article.appendChild(time);
     return article;
 }
 
@@ -193,7 +237,7 @@ document.getElementById("searchInput").addEventListener("input", function () {
     searchTimer = setTimeout(loadHistory, 250);
 });
 
-["typeFilter", "riskFilter"].forEach(function (id) {
+["typeFilter", "riskFilter", "categoryFilter"].forEach(function (id) {
     document.getElementById(id).addEventListener("change", loadHistory);
 });
 
@@ -201,6 +245,7 @@ document.getElementById("resetFilters").addEventListener("click", function () {
     document.getElementById("searchInput").value = "";
     document.getElementById("typeFilter").value = "";
     document.getElementById("riskFilter").value = "";
+    document.getElementById("categoryFilter").value = "";
     loadHistory();
 });
 

@@ -1,4 +1,42 @@
-// Landing page: message + URL scanners and the small stats strip.
+// Landing page: message + URL scanners.
+
+function useAi() {
+    const box = document.getElementById("useAi");
+    return !!(box && box.checked && !box.disabled);
+}
+
+function renderAiBox(element, ai) {
+    element.replaceChildren();
+    element.className = "ai-box";
+
+    if (!ai || !ai.available) {
+        element.classList.add("muted");
+        element.textContent = "AI analysis: " + ((ai && ai.note) || "not used.");
+        return;
+    }
+
+    const heading = document.createElement("div");
+    const label = document.createElement("strong");
+    label.textContent = "AI analysis";
+    heading.append(label, " · score " + ai.score + "/100 (" + ai.risk + ")");
+    element.appendChild(heading);
+
+    if (ai.summary) {
+        const summary = document.createElement("div");
+        summary.textContent = ai.summary;
+        element.appendChild(summary);
+    }
+
+    if (ai.reasons && ai.reasons.length) {
+        const list = document.createElement("ul");
+        ai.reasons.forEach(function (reason) {
+            const li = document.createElement("li");
+            li.textContent = reason;
+            list.appendChild(li);
+        });
+        element.appendChild(list);
+    }
+}
 
 function displayResult(prefix, data) {
     const result = document.getElementById(prefix + "Result");
@@ -6,6 +44,7 @@ function displayResult(prefix, data) {
     const meter = document.getElementById(prefix + "Meter");
     const riskElement = document.getElementById(prefix + "Risk");
     const warningsElement = document.getElementById(prefix + "Warnings");
+    const categoriesElement = document.getElementById(prefix + "Categories");
 
     const score = Number(data.score ?? 0);
     const risk = String(data.risk ?? "Unknown");
@@ -19,7 +58,17 @@ function displayResult(prefix, data) {
     meter.className = "meter-fill" +
         (riskClass === "high" ? " high-bg" : riskClass === "medium" ? " medium-bg" : "");
 
-    riskElement.textContent = "Risk Level: " + risk;
+    let riskText = "Risk Level: " + risk;
+    if (data.ai && data.ai.available) {
+        riskText += " (final: the more cautious of rules " + data.rule_score +
+            " and AI " + data.ai.score + ")";
+    }
+    riskElement.textContent = riskText;
+
+    categoriesElement.replaceChildren();
+    (data.categories || []).forEach(function (name) {
+        categoriesElement.appendChild(makeChip(name));
+    });
 
     warningsElement.replaceChildren();
     (warnings.length ? warnings : ["No warnings returned by the scanner."]).forEach(function (text) {
@@ -28,11 +77,14 @@ function displayResult(prefix, data) {
         warningsElement.appendChild(li);
     });
 
+    renderAiBox(document.getElementById(prefix + "Ai"), data.ai);
+
     result.style.display = "block";
     loadHeroStats();
 }
 
 async function loadHeroStats() {
+    if (!document.getElementById("heroStats")) return;
     try {
         const stats = await fetchJSON("/api/stats");
         document.getElementById("heroTotal").textContent = stats.total;
@@ -64,7 +116,7 @@ document.getElementById("messageForm").addEventListener("submit", async function
         const data = await fetchJSON("/analyse", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: message })
+            body: JSON.stringify({ message: message, use_ai: useAi() })
         });
         displayResult("message", data);
     } catch (errorObject) {
@@ -114,7 +166,7 @@ document.getElementById("urlForm").addEventListener("submit", async function (ev
         const data = await fetchJSON("/analyse-url", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url: url })
+            body: JSON.stringify({ url: url, use_ai: useAi() })
         });
         displayResult("url", data);
     } catch (errorObject) {

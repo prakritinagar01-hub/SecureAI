@@ -3,26 +3,28 @@
 {% block content %}
 
 <header class="hero" id="home">
-    <div class="tag">CYBERSECURITY &middot; THREAT DETECTION</div>
+    <div class="tag">CYBERSECURITY &middot; AI THREAT DETECTION</div>
 
     <h1>Stay ahead of <span>cyber threats.</span></h1>
 
     <p>
-        Analyse suspicious messages and website links to identify
-        potential phishing indicators. Every scan is saved to your
-        history, so you can review it later on the dashboard.
+        Analyse suspicious messages and links with rule-based checks and AI,
+        then test how safely an AI assistant handles malicious inputs.
+        Every scan is saved so you can study the attacks people send.
     </p>
 
     <div class="hero-actions">
         <a class="btn primary-link" href="#scanner">Start a scan</a>
-        <a class="btn secondary-link" href="{{ url_for('dashboard') }}">Open dashboard</a>
+        <a class="btn secondary-link" href="{{ url_for('lab') }}">Open AI Safety Lab</a>
     </div>
 
+    {% if is_admin %}
     <div class="hero-stats" id="heroStats">
         <div><strong id="heroTotal">0</strong><span>scans saved</span></div>
         <div><strong id="heroHigh">0</strong><span>high-risk found</span></div>
         <div><strong id="heroAvg">0</strong><span>average risk score</span></div>
     </div>
+    {% endif %}
 </header>
 
 <main class="container">
@@ -32,6 +34,14 @@
             <h2>Security Scanner</h2>
             <p>Scan a message or inspect a suspicious URL.</p>
         </div>
+
+        <label class="check-row" for="useAi">
+            <input type="checkbox" id="useAi" {% if ai_on %}checked{% else %}disabled{% endif %}>
+            <span>
+                Use AI analysis as well
+                {% if not ai_on %}<em>(off: no ANTHROPIC_API_KEY configured, rule-based checks only)</em>{% endif %}
+            </span>
+        </label>
 
         <div class="scanner-grid">
 
@@ -53,9 +63,10 @@
                     <div class="score" id="messageScore"></div>
                     <div class="meter"><div class="meter-fill" id="messageMeter"></div></div>
                     <p id="messageRisk"></p>
+                    <div class="chips" id="messageCategories"></div>
                     <ul class="warning-list" id="messageWarnings"></ul>
-                    <p class="saved-note">Saved to history &middot;
-                        <a href="{{ url_for('dashboard') }}">view on dashboard</a></p>
+                    <div class="ai-box" id="messageAi"></div>
+                    <p class="saved-note">Saved to history</p>
                 </div>
             </div>
 
@@ -76,9 +87,10 @@
                     <div class="score" id="urlScore"></div>
                     <div class="meter"><div class="meter-fill" id="urlMeter"></div></div>
                     <p id="urlRisk"></p>
+                    <div class="chips" id="urlCategories"></div>
                     <ul class="warning-list" id="urlWarnings"></ul>
-                    <p class="saved-note">Saved to history &middot;
-                        <a href="{{ url_for('dashboard') }}">view on dashboard</a></p>
+                    <div class="ai-box" id="urlAi"></div>
+                    <p class="saved-note">Saved to history</p>
                 </div>
             </div>
 
@@ -88,55 +100,33 @@
     <section id="features" class="spaced">
         <div class="section-heading">
             <h2>What you get</h2>
-            <p>Designed to help you recognise common online risks.</p>
+            <p>Built to explore the security challenges of real users meeting AI systems.</p>
         </div>
 
         <div class="features">
             <article class="feature">
-                <h3>Message &amp; URL scanning</h3>
-                <p>Check text and links for urgency, OTP requests, reward scams and suspicious patterns.</p>
+                <h3>Rules + AI scanning</h3>
+                <p>Rule-based scoring plus an AI second opinion. The final verdict is the more cautious of the two.</p>
+            </article>
+            <article class="feature">
+                <h3>AI Agent Safety Lab</h3>
+                <p>Run 25 attacks (prompt leakage, injection, impersonation, scams) against an assistant and see where it breaks.</p>
+            </article>
+            <article class="feature">
+                <h3>Attack monitoring</h3>
+                <p>Every scan is tagged by attack type, so the dashboard shows what people actually send.</p>
             </article>
             <article class="feature">
                 <h3>Permanent history</h3>
-                <p>Every scan is stored in a local SQLite database and survives refreshes and restarts.</p>
+                <p>Scans and lab runs are stored in a local SQLite database and can be exported as CSV or TXT.</p>
             </article>
             <article class="feature">
-                <h3>Dashboard &amp; charts</h3>
-                <p>See your risk mix and scan activity, then search and filter every report.</p>
-            </article>
-            <article class="feature">
-                <h3>Download reports</h3>
-                <p>Export your history as CSV for spreadsheets or TXT for a readable summary.</p>
+                <h3>Hardened by design</h3>
+                <p>CSRF protection, rate limits, admin login, strict headers, and AI prompts that treat input as data.</p>
             </article>
             <article class="feature">
                 <h3>Awareness tips</h3>
                 <p>Learn the red flags of phishing and what to do if you already clicked.</p>
-            </article>
-            <article class="feature">
-                <h3>Private by default</h3>
-                <p>Data stays in your own project folder. Nothing is sent to any third-party service.</p>
-            </article>
-        </div>
-    </section>
-
-    <section class="spaced">
-        <div class="section-heading">
-            <h2>Think before you click</h2>
-            <p>Three quick rules that stop most phishing attacks.</p>
-        </div>
-
-        <div class="features">
-            <article class="feature">
-                <h3>Never share your OTP</h3>
-                <p>Banks and apps never ask for OTPs, PINs or passwords by call, SMS or chat.</p>
-            </article>
-            <article class="feature">
-                <h3>Pause on urgency</h3>
-                <p>"Act now" and "account will be blocked" are pressure tactics. Slow down and verify.</p>
-            </article>
-            <article class="feature">
-                <h3>Check the link</h3>
-                <p>Open the official app or type the website yourself instead of tapping a link.</p>
             </article>
         </div>
 

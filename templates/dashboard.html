@@ -8,13 +8,13 @@
 
     <div class="section-heading">
         <h2>Security Dashboard</h2>
-        <p>All scans are saved permanently. Use the filters to find a report.</p>
+        <p>All scans are saved permanently and tagged by attack type. Use the filters to find a report.</p>
     </div>
 
     <section class="stat-grid">
         <div class="stat"><span>Total scans</span><strong id="statTotal">0</strong></div>
         <div class="stat"><span>High risk</span><strong class="high" id="statHigh">0</strong></div>
-        <div class="stat"><span>Medium risk</span><strong class="medium" id="statMedium">0</strong></div>
+        <div class="stat"><span>Prompt-injection attempts</span><strong class="medium" id="statInjection">0</strong></div>
         <div class="stat"><span>Average score</span><strong id="statAvg">0</strong></div>
     </section>
 
@@ -28,6 +28,13 @@
             <h3>Scans in the last 7 days</h3>
             <div class="chart-box"><canvas id="dailyChart" aria-label="Scans per day chart" role="img"></canvas></div>
         </div>
+    </section>
+
+    <section class="card spaced-sm">
+        <h3>Attack types seen</h3>
+        <p class="description">What people are actually sending, by category.</p>
+        <div class="chart-box tall"><canvas id="categoryChart" aria-label="Attack categories chart" role="img"></canvas></div>
+        <p class="empty-note" id="categoryEmpty" hidden>No categorised attacks yet.</p>
     </section>
 
     <section class="spaced-sm">
@@ -58,6 +65,13 @@
                 <option value="High">High</option>
                 <option value="Medium">Medium</option>
                 <option value="Low">Low</option>
+            </select>
+
+            <select id="categoryFilter" aria-label="Filter by attack category">
+                <option value="">All attack types</option>
+                {% for name in categories %}
+                <option value="{{ name }}">{{ name }}</option>
+                {% endfor %}
             </select>
 
             <button class="secondary-btn" id="resetFilters" type="button">Reset</button>

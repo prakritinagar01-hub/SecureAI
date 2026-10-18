@@ -1,4 +1,4 @@
-// Helpers shared by the landing page and the dashboard.
+// Helpers shared by all pages.
 
 function getRiskClass(risk) {
     const value = String(risk || "").toLowerCase();
@@ -19,11 +19,42 @@ function formatServerTime(value) {
     return isNaN(date) ? String(value) : date.toLocaleString();
 }
 
+function csrfToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.content : "";
+}
+
 async function fetchJSON(url, options) {
-    const response = await fetch(url, options);
-    const data = await response.json();
+    const opts = Object.assign({ credentials: "same-origin" }, options || {});
+    const method = (opts.method || "GET").toUpperCase();
+
+    if (method !== "GET") {
+        opts.headers = Object.assign({ "X-CSRF-Token": csrfToken() }, opts.headers || {});
+    }
+
+    const response = await fetch(url, opts);
+
+    if (response.status === 401) {
+        window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
+        throw new Error("Login required.");
+    }
+
+    let data = {};
+    try {
+        data = await response.json();
+    } catch (e) {
+        // Non-JSON error page
+    }
+
     if (!response.ok) {
-        throw new Error(data.error || "Request failed.");
+        throw new Error(data.error || "Request failed (" + response.status + ").");
     }
     return data;
+}
+
+function makeChip(text) {
+    const chip = document.createElement("span");
+    chip.className = "chip" + (text === "Prompt injection attempt" ? " injection" : "");
+    chip.textContent = text;
+    return chip;
 }

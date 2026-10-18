@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Admin login | SecureAI{% endblock %}
+
+{% block content %}
+<main class="container narrow page-top">
+    <div class="card">
+        <h3>Admin login</h3>
+        <p class="description">The dashboard, report history, downloads and AI Lab are protected.</p>
+
+        <form method="post" action="{{ url_for('login') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="next" value="{{ next_url }}">
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" autocomplete="current-password" required autofocus>
+
+            <button class="primary-btn" type="submit">Log in</button>
+        </form>
+
+        {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    </div>
+</main>
+{% endblock %}
