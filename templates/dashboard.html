@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | SecureAI{% endblock %}
+
+{% block content %}
+
+<main class="container page-top">
+
+    <div class="section-heading">
+        <h2>Security Dashboard</h2>
+        <p>All scans are saved permanently. Use the filters to find a report.</p>
+    </div>
+
+    <section class="stat-grid">
+        <div class="stat"><span>Total scans</span><strong id="statTotal">0</strong></div>
+        <div class="stat"><span>High risk</span><strong class="high" id="statHigh">0</strong></div>
+        <div class="stat"><span>Medium risk</span><strong class="medium" id="statMedium">0</strong></div>
+        <div class="stat"><span>Average score</span><strong id="statAvg">0</strong></div>
+    </section>
+
+    <section class="chart-grid">
+        <div class="card">
+            <h3>Risk distribution</h3>
+            <div class="chart-box"><canvas id="riskChart" aria-label="Risk distribution chart" role="img"></canvas></div>
+            <p class="empty-note" id="riskEmpty" hidden>No scans yet.</p>
+        </div>
+        <div class="card">
+            <h3>Scans in the last 7 days</h3>
+            <div class="chart-box"><canvas id="dailyChart" aria-label="Scans per day chart" role="img"></canvas></div>
+        </div>
+    </section>
+
+    <section class="spaced-sm">
+        <div class="report-toolbar">
+            <div class="section-heading" style="margin-bottom:0">
+                <h2>Report history</h2>
+                <p id="reportCount">Loading...</p>
+            </div>
+
+            <div class="toolbar-buttons">
+                <a class="secondary-btn btn" id="downloadCsv" href="/download/csv">Download CSV</a>
+                <a class="secondary-btn btn" id="downloadTxt" href="/download/txt">Download TXT</a>
+                <button class="danger-btn" id="clearButton" type="button">Clear all</button>
+            </div>
+        </div>
+
+        <div class="filters">
+            <input type="search" id="searchInput" placeholder="Search scanned text or URL..." aria-label="Search reports">
+
+            <select id="typeFilter" aria-label="Filter by type">
+                <option value="">All types</option>
+                <option value="Message">Messages</option>
+                <option value="URL">URLs</option>
+            </select>
+
+            <select id="riskFilter" aria-label="Filter by risk">
+                <option value="">All risk levels</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+            </select>
+
+            <button class="secondary-btn" id="resetFilters" type="button">Reset</button>
+        </div>
+
+        <div class="report-list" id="reportList"></div>
+    </section>
+
+</main>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='common.js') }}"></script>
+<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+{% endblock %}

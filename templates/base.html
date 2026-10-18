@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SecureAI | Cybersecurity Scanner{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <nav>
+        <a class="logo" href="{{ url_for('home') }}">Secure<span>AI</span></a>
+
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}" class="{{ 'current' if active == 'home' }}">Home</a>
+            <a href="{{ url_for('home') }}#scanner">Scanner</a>
+            <a href="{{ url_for('dashboard') }}" class="{{ 'current' if active == 'dashboard' }}">Dashboard</a>
+            <a href="{{ url_for('awareness') }}" class="{{ 'current' if active == 'awareness' }}">Stay Safe</a>
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    <footer>
+        SecureAI &middot; Cybersecurity Awareness Project
+        <br>
+        Results are indicators, not a guarantee that a message or website is safe.
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

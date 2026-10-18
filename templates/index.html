@@ -1,779 +1,153 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecureAI | Cybersecurity Scanner</title>
+{% extends "base.html" %}
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+{% block content %}
 
-    <style>
-        :root {
-            --bg: #080d19;
-            --card: #101827;
-            --border: #263449;
-            --text: #f1f5f9;
-            --muted: #94a3b8;
-            --cyan: #67e8f9;
-        }
+<header class="hero" id="home">
+    <div class="tag">CYBERSECURITY &middot; THREAT DETECTION</div>
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    <h1>Stay ahead of <span>cyber threats.</span></h1>
 
-        html {
-            scroll-behavior: smooth;
-        }
+    <p>
+        Analyse suspicious messages and website links to identify
+        potential phishing indicators. Every scan is saved to your
+        history, so you can review it later on the dashboard.
+    </p>
 
-        body {
-            font-family: Inter, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-        }
+    <div class="hero-actions">
+        <a class="btn primary-link" href="#scanner">Start a scan</a>
+        <a class="btn secondary-link" href="{{ url_for('dashboard') }}">Open dashboard</a>
+    </div>
 
-        nav {
-            min-height: 76px;
-            padding: 18px 7%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-            border-bottom: 1px solid var(--border);
-            background: #080d19;
-        }
+    <div class="hero-stats" id="heroStats">
+        <div><strong id="heroTotal">0</strong><span>scans saved</span></div>
+        <div><strong id="heroHigh">0</strong><span>high-risk found</span></div>
+        <div><strong id="heroAvg">0</strong><span>average risk score</span></div>
+    </div>
+</header>
 
-        .logo {
-            font-size: 25px;
-            font-weight: 800;
-            color: var(--cyan);
-        }
+<main class="container">
 
-        .logo span {
-            color: white;
-        }
-
-        .nav-links {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: #cbd5e1;
-            font-size: 13px;
-        }
-
-        .nav-links a:hover {
-            color: var(--cyan);
-        }
-
-        .hero {
-            max-width: 950px;
-            margin: 75px auto 55px;
-            padding: 0 22px;
-            text-align: center;
-        }
-
-        .tag {
-            display: inline-block;
-            padding: 7px 14px;
-            border: 1px solid #164e63;
-            border-radius: 30px;
-            background: #0c2531;
-            color: var(--cyan);
-            font-size: 11px;
-            letter-spacing: 1px;
-            margin-bottom: 22px;
-        }
-
-        h1 {
-            font-size: clamp(36px, 6vw, 62px);
-            line-height: 1.12;
-            letter-spacing: -2px;
-            margin-bottom: 22px;
-        }
-
-        h1 span {
-            color: var(--cyan);
-        }
-
-        .hero p {
-            max-width: 650px;
-            margin: auto;
-            color: var(--muted);
-            font-size: 15px;
-        }
-
-        .container {
-            width: min(1100px, 90%);
-            margin: 0 auto 75px;
-        }
-
-        .section-heading {
-            margin-bottom: 23px;
-        }
-
-        .section-heading h2 {
-            font-size: 25px;
-            margin-bottom: 6px;
-        }
-
-        .section-heading p {
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        .scanner-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 22px;
-        }
-
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 15px;
-            padding: 27px;
-        }
-
-        .card h3 {
-            font-size: 19px;
-            margin-bottom: 7px;
-        }
-
-        .description {
-            color: var(--muted);
-            font-size: 13px;
-            margin-bottom: 23px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 9px;
-            color: #cbd5e1;
-            font-size: 13px;
-        }
-
-        textarea,
-        input {
-            display: block;
-            width: 100%;
-            background: #080d19;
-            color: white;
-            border: 1px solid #334155;
-            border-radius: 9px;
-            padding: 13px;
-            margin-bottom: 16px;
-            font-family: inherit;
-            font-size: 13px;
-            outline: none;
-        }
-
-        textarea {
-            min-height: 145px;
-            resize: vertical;
-        }
-
-        textarea:focus,
-        input:focus {
-            border-color: var(--cyan);
-        }
-
-        button {
-            border: 0;
-            border-radius: 9px;
-            padding: 12px 17px;
-            font-family: inherit;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .primary-btn {
-            width: 100%;
-            color: #08202a;
-            background: var(--cyan);
-        }
-
-        .primary-btn:hover {
-            background: #a5f3fc;
-        }
-
-        button:disabled {
-            opacity: 0.6;
-            cursor: wait;
-        }
-
-        .secondary-btn {
-            background: #162235;
-            color: var(--cyan);
-            border: 1px solid #334155;
-        }
-
-        .secondary-btn:hover {
-            background: #203148;
-        }
-
-        .result {
-            display: none;
-            margin-top: 20px;
-            padding: 18px;
-            background: #080d19;
-            border: 1px solid #334155;
-            border-radius: 10px;
-            overflow-wrap: anywhere;
-        }
-
-        .result h4 {
-            margin-bottom: 10px;
-            font-size: 15px;
-        }
-
-        .score {
-            font-size: 25px;
-            font-weight: 800;
-            margin-bottom: 8px;
-        }
-
-        .result p {
-            font-size: 13px;
-            color: #cbd5e1;
-            margin-top: 7px;
-        }
-
-        .safe {
-            color: #4ade80 !important;
-        }
-
-        .medium {
-            color: #fbbf24 !important;
-        }
-
-        .high {
-            color: #fb7185 !important;
-        }
-
-        .error {
-            color: #fb7185;
-            font-size: 12px;
-            margin-top: 12px;
-            overflow-wrap: anywhere;
-        }
-
-        .report-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-
-        .report-list {
-            display: grid;
-            gap: 15px;
-        }
-
-        .report-item {
-            padding: 20px;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow-wrap: anywhere;
-        }
-
-        .report-item h3 {
-            font-size: 16px;
-            margin-bottom: 8px;
-        }
-
-        .report-item p {
-            color: #cbd5e1;
-            font-size: 13px;
-            margin-top: 5px;
-        }
-
-        .report-meta {
-            color: var(--muted) !important;
-            font-size: 11px !important;
-        }
-
-        .empty-state {
-            padding: 28px;
-            border: 1px dashed #334155;
-            border-radius: 12px;
-            text-align: center;
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        .features {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 18px;
-        }
-
-        .feature {
-            padding: 22px;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-        }
-
-        .feature h3 {
-            font-size: 15px;
-            margin-bottom: 8px;
-        }
-
-        .feature p {
-            color: var(--muted);
-            font-size: 12px;
-        }
-
-        footer {
-            border-top: 1px solid var(--border);
-            padding: 25px 15px;
-            text-align: center;
-            color: #64748b;
-            font-size: 12px;
-        }
-
-        @media (max-width: 750px) {
-            nav {
-                padding: 18px 5%;
-                flex-direction: column;
-            }
-
-            .nav-links {
-                justify-content: center;
-                gap: 15px;
-            }
-
-            .hero {
-                margin-top: 50px;
-            }
-
-            .scanner-grid,
-            .features {
-                grid-template-columns: 1fr;
-            }
-
-            .card {
-                padding: 21px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <nav>
-        <div class="logo">Secure<span>AI</span></div>
-
-        <div class="nav-links">
-            <a href="#home">Home</a>
-            <a href="#scanner">Scanner</a>
-            <a href="#reports">View Reports</a>
-            <a href="#features">Features</a>
+    <section id="scanner">
+        <div class="section-heading">
+            <h2>Security Scanner</h2>
+            <p>Scan a message or inspect a suspicious URL.</p>
         </div>
-    </nav>
 
-    <header class="hero" id="home">
-        <div class="tag">CYBERSECURITY · THREAT DETECTION</div>
+        <div class="scanner-grid">
 
-        <h1>Stay ahead of <span>cyber threats.</span></h1>
+            <div class="card">
+                <h3>Message Scanner</h3>
+                <p class="description">Review suspicious emails, SMS messages, and text.</p>
 
-        <p>
-            Analyse suspicious messages and website links to identify
-            potential phishing indicators. Think before you click.
-        </p>
-    </header>
+                <form id="messageForm">
+                    <label for="message">Message to analyse</label>
+                    <textarea id="message" maxlength="5000"
+                              placeholder="Paste your suspicious message here..." required></textarea>
+                    <button class="primary-btn" id="messageButton" type="submit">Analyse Message</button>
+                </form>
 
-    <main class="container">
+                <p class="error" id="messageError" aria-live="polite"></p>
 
-        <!-- SCANNER SECTION -->
-        <section id="scanner">
-            <div class="section-heading">
-                <h2>Security Scanner</h2>
-                <p>Scan a message or inspect a suspicious URL.</p>
-            </div>
-
-            <div class="scanner-grid">
-
-                <!-- MESSAGE SCANNER -->
-                <div class="card">
-                    <h3>Message Scanner</h3>
-                    <p class="description">
-                        Review suspicious emails, SMS messages, and text.
-                    </p>
-
-                    <form id="messageForm">
-                        <label for="message">Message to analyse</label>
-
-                        <textarea
-                            id="message"
-                            placeholder="Paste your suspicious message here..."
-                            required
-                        ></textarea>
-
-                        <button class="primary-btn" id="messageButton" type="submit">
-                            Analyse Message
-                        </button>
-                    </form>
-
-                    <p class="error" id="messageError" aria-live="polite"></p>
-
-                    <div class="result" id="messageResult" aria-live="polite">
-                        <h4>Message Analysis Report</h4>
-                        <div class="score" id="messageScore"></div>
-                        <p id="messageRisk"></p>
-                        <p id="messageWarnings"></p>
-                    </div>
-                </div>
-
-                <!-- URL SCANNER -->
-                <div class="card">
-                    <h3>Phishing URL Checker</h3>
-                    <p class="description">
-                        Check a website address for suspicious indicators.
-                    </p>
-
-                    <form id="urlForm">
-                        <label for="url">Website URL</label>
-
-                        <input
-                            type="text"
-                            id="url"
-                            placeholder="https://example.com"
-                            required
-                        >
-
-                        <button class="primary-btn" id="urlButton" type="submit">
-                            Check URL
-                        </button>
-                    </form>
-
-                    <p class="error" id="urlError" aria-live="polite"></p>
-
-                    <div class="result" id="urlResult" aria-live="polite">
-                        <h4>URL Analysis Report</h4>
-                        <div class="score" id="urlScore"></div>
-                        <p id="urlRisk"></p>
-                        <p id="urlWarnings"></p>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- REPORTS SECTION -->
-        <section id="reports" style="margin-top: 65px;">
-            <div class="report-toolbar">
-                <div class="section-heading" style="margin-bottom: 0;">
-                    <h2>Security Reports</h2>
-                    <p>View results from your scans in this session.</p>
-                </div>
-
-                <button class="secondary-btn" id="viewReportsButton" type="button">
-                    View Reports
-                </button>
-            </div>
-
-            <div id="reportsContent" style="display: none; margin-top: 20px;">
-                <div class="report-toolbar">
-                    <p id="reportCount" style="color: #94a3b8; font-size: 13px;">
-                        No reports yet
-                    </p>
-
-                    <button class="secondary-btn" id="clearReportsButton" type="button">
-                        Clear Reports
-                    </button>
-                </div>
-
-                <div class="report-list" id="reportList">
-                    <div class="empty-state">
-                        No reports yet. Scan a message or URL first.
-                    </div>
+                <div class="result" id="messageResult" aria-live="polite">
+                    <h4>Message Analysis Report</h4>
+                    <div class="score" id="messageScore"></div>
+                    <div class="meter"><div class="meter-fill" id="messageMeter"></div></div>
+                    <p id="messageRisk"></p>
+                    <ul class="warning-list" id="messageWarnings"></ul>
+                    <p class="saved-note">Saved to history &middot;
+                        <a href="{{ url_for('dashboard') }}">view on dashboard</a></p>
                 </div>
             </div>
-        </section>
 
-        <!-- FEATURES -->
-        <section id="features" style="margin-top: 65px;">
-            <div class="section-heading">
-                <h2>Security Tools</h2>
-                <p>Designed to help you recognise common online risks.</p>
+            <div class="card">
+                <h3>Phishing URL Checker</h3>
+                <p class="description">Check a website address for suspicious indicators.</p>
+
+                <form id="urlForm">
+                    <label for="url">Website URL</label>
+                    <input type="text" id="url" placeholder="https://example.com" required>
+                    <button class="primary-btn" id="urlButton" type="submit">Check URL</button>
+                </form>
+
+                <p class="error" id="urlError" aria-live="polite"></p>
+
+                <div class="result" id="urlResult" aria-live="polite">
+                    <h4>URL Analysis Report</h4>
+                    <div class="score" id="urlScore"></div>
+                    <div class="meter"><div class="meter-fill" id="urlMeter"></div></div>
+                    <p id="urlRisk"></p>
+                    <ul class="warning-list" id="urlWarnings"></ul>
+                    <p class="saved-note">Saved to history &middot;
+                        <a href="{{ url_for('dashboard') }}">view on dashboard</a></p>
+                </div>
             </div>
 
-            <div class="features">
-                <article class="feature">
-                    <h3>Message Analysis</h3>
-                    <p>Check text for suspicious wording and possible phishing signals.</p>
-                </article>
+        </div>
+    </section>
 
-                <article class="feature">
-                    <h3>URL Inspection</h3>
-                    <p>Inspect a link for patterns that could indicate risk.</p>
-                </article>
+    <section id="features" class="spaced">
+        <div class="section-heading">
+            <h2>What you get</h2>
+            <p>Designed to help you recognise common online risks.</p>
+        </div>
 
-                <article class="feature">
-                    <h3>Report History</h3>
-                    <p>Review the scan results collected during the current page session.</p>
-                </article>
-            </div>
-        </section>
+        <div class="features">
+            <article class="feature">
+                <h3>Message &amp; URL scanning</h3>
+                <p>Check text and links for urgency, OTP requests, reward scams and suspicious patterns.</p>
+            </article>
+            <article class="feature">
+                <h3>Permanent history</h3>
+                <p>Every scan is stored in a local SQLite database and survives refreshes and restarts.</p>
+            </article>
+            <article class="feature">
+                <h3>Dashboard &amp; charts</h3>
+                <p>See your risk mix and scan activity, then search and filter every report.</p>
+            </article>
+            <article class="feature">
+                <h3>Download reports</h3>
+                <p>Export your history as CSV for spreadsheets or TXT for a readable summary.</p>
+            </article>
+            <article class="feature">
+                <h3>Awareness tips</h3>
+                <p>Learn the red flags of phishing and what to do if you already clicked.</p>
+            </article>
+            <article class="feature">
+                <h3>Private by default</h3>
+                <p>Data stays in your own project folder. Nothing is sent to any third-party service.</p>
+            </article>
+        </div>
+    </section>
 
-    </main>
+    <section class="spaced">
+        <div class="section-heading">
+            <h2>Think before you click</h2>
+            <p>Three quick rules that stop most phishing attacks.</p>
+        </div>
 
-    <footer>
-        SecureAI · Cybersecurity Awareness Project
-        <br>
-        Results are indicators, not a guarantee that a message or website is safe.
-    </footer>
+        <div class="features">
+            <article class="feature">
+                <h3>Never share your OTP</h3>
+                <p>Banks and apps never ask for OTPs, PINs or passwords by call, SMS or chat.</p>
+            </article>
+            <article class="feature">
+                <h3>Pause on urgency</h3>
+                <p>"Act now" and "account will be blocked" are pressure tactics. Slow down and verify.</p>
+            </article>
+            <article class="feature">
+                <h3>Check the link</h3>
+                <p>Open the official app or type the website yourself instead of tapping a link.</p>
+            </article>
+        </div>
 
-    <script>
-        // Stores results only in this page session.
-        const reports = [];
+        <p class="more-link"><a href="{{ url_for('awareness') }}">Read the full safety guide &rarr;</a></p>
+    </section>
 
-        function getRiskClass(risk) {
-            const value = String(risk || "").toLowerCase();
+</main>
 
-            if (value.includes("high") || value.includes("critical")) {
-                return "high";
-            }
+{% endblock %}
 
-            if (value.includes("medium") || value.includes("moderate")) {
-                return "medium";
-            }
-
-            return "safe";
-        }
-
-        function normalizeWarnings(warnings) {
-            if (Array.isArray(warnings)) {
-                return warnings.map(String);
-            }
-
-            if (warnings === null || warnings === undefined || warnings === "") {
-                return [];
-            }
-
-            return [String(warnings)];
-        }
-
-        function displayResult(prefix, data, type, inputValue) {
-            const result = document.getElementById(prefix + "Result");
-            const scoreElement = document.getElementById(prefix + "Score");
-            const riskElement = document.getElementById(prefix + "Risk");
-            const warningsElement = document.getElementById(prefix + "Warnings");
-
-            const score = Number(data.score ?? 0);
-            const risk = String(data.risk ?? "Unknown");
-            const warnings = normalizeWarnings(data.warnings);
-
-            scoreElement.textContent = "Risk Score: " + score + "/100";
-            scoreElement.className = "score " + getRiskClass(risk);
-
-            riskElement.textContent = "Risk Level: " + risk;
-
-            warningsElement.textContent = warnings.length
-                ? "Warnings: " + warnings.join(", ")
-                : "Warnings: No warnings returned by the scanner.";
-
-            result.style.display = "block";
-
-            // Add a report to the page's report history.
-            reports.unshift({
-                type: type,
-                input: inputValue,
-                score: score,
-                risk: risk,
-                warnings: warnings,
-                time: new Date().toLocaleString()
-            });
-
-            renderReports();
-        }
-
-        function renderReports() {
-            const list = document.getElementById("reportList");
-            const count = document.getElementById("reportCount");
-
-            count.textContent = reports.length +
-                (reports.length === 1 ? " report" : " reports");
-
-            list.replaceChildren();
-
-            if (reports.length === 0) {
-                const empty = document.createElement("div");
-                empty.className = "empty-state";
-                empty.textContent = "No reports yet. Scan a message or URL first.";
-                list.appendChild(empty);
-                return;
-            }
-
-            reports.forEach(function (report, index) {
-                const article = document.createElement("article");
-                article.className = "report-item";
-
-                const title = document.createElement("h3");
-                title.textContent = (index + 1) + ". " + report.type + " Report";
-
-                const score = document.createElement("p");
-                score.className = getRiskClass(report.risk);
-                score.textContent = "Risk Score: " + report.score + "/100";
-
-                const risk = document.createElement("p");
-                risk.textContent = "Risk Level: " + report.risk;
-
-                const scanned = document.createElement("p");
-                scanned.textContent = "Scanned item: " + report.input;
-
-                const warnings = document.createElement("p");
-                warnings.textContent = report.warnings.length
-                    ? "Warnings: " + report.warnings.join(", ")
-                    : "Warnings: None returned.";
-
-                const time = document.createElement("p");
-                time.className = "report-meta";
-                time.textContent = "Scan time: " + report.time;
-
-                article.append(title, score, risk, scanned, warnings, time);
-                list.appendChild(article);
-            });
-        }
-
-        // Show or hide the report panel.
-        document.getElementById("viewReportsButton").addEventListener("click", function () {
-            const content = document.getElementById("reportsContent");
-            const isHidden = content.style.display === "none";
-
-            content.style.display = isHidden ? "block" : "none";
-            this.textContent = isHidden ? "Hide Reports" : "View Reports";
-
-            if (isHidden) {
-                renderReports();
-            }
-        });
-
-        // Clear the current page's report history.
-        document.getElementById("clearReportsButton").addEventListener("click", function () {
-            reports.length = 0;
-            renderReports();
-        });
-
-        // Message scan: uses the Flask route already in your project.
-        document.getElementById("messageForm").addEventListener("submit", async function (event) {
-            event.preventDefault();
-
-            const message = document.getElementById("message").value.trim();
-            const button = document.getElementById("messageButton");
-            const error = document.getElementById("messageError");
-
-            error.textContent = "";
-
-            if (!message) {
-                error.textContent = "Please enter a message first.";
-                return;
-            }
-
-            button.disabled = true;
-            button.textContent = "Analysing...";
-
-            try {
-                const response = await fetch("/analyse", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ message: message })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || "Message analysis failed.");
-                }
-
-                displayResult("message", data, "Message", message);
-
-            } catch (errorObject) {
-                error.textContent = errorObject.message ||
-                    "Could not analyse the message. Please try again.";
-            } finally {
-                button.disabled = false;
-                button.textContent = "Analyse Message";
-            }
-        });
-
-        // URL scan: uses the Flask route already in your project.
-        document.getElementById("urlForm").addEventListener("submit", async function (event) {
-            event.preventDefault();
-
-            let url = document.getElementById("url").value.trim();
-            const button = document.getElementById("urlButton");
-            const error = document.getElementById("urlError");
-
-            error.textContent = "";
-
-            if (!url) {
-                error.textContent = "Please enter a URL.";
-                return;
-            }
-
-            if (!/^https?:\/\//i.test(url)) {
-                url = "https://" + url;
-            }
-
-            let parsedURL;
-
-            try {
-                parsedURL = new URL(url);
-            } catch {
-                error.textContent = "Please enter a valid website URL.";
-                return;
-            }
-
-            if (!["http:", "https:"].includes(parsedURL.protocol)) {
-                error.textContent = "Only HTTP and HTTPS URLs are supported.";
-                return;
-            }
-
-            button.disabled = true;
-            button.textContent = "Checking...";
-
-            try {
-                const response = await fetch("/analyse-url", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ url: url })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || "URL analysis failed.");
-                }
-
-                displayResult("url", data, "URL", url);
-
-            } catch (errorObject) {
-                error.textContent = errorObject.message ||
-                    "Could not check the URL. Please try again.";
-            } finally {
-                button.disabled = false;
-                button.textContent = "Check URL";
-            }
-        });
-    </script>
-
-</body>
-</html>
+{% block scripts %}
+<script src="{{ url_for('static', filename='common.js') }}"></script>
+<script src="{{ url_for('static', filename='scanner.js') }}"></script>
+{% endblock %}
