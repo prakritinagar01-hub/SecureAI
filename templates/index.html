@@ -1,143 +1,171 @@
-{% extends "base.html" %}
-
-{% block content %}
-
-<header class="hero" id="home">
-    <div class="tag">CYBERSECURITY &middot; AI THREAT DETECTION</div>
-
-    <h1>Stay ahead of <span>cyber threats.</span></h1>
-
-    <p>
-        Analyse suspicious messages and links with rule-based checks and AI,
-        then test how safely an AI assistant handles malicious inputs.
-        Every scan is saved so you can study the attacks people send.
-    </p>
-
-    <div class="hero-actions">
-        <a class="btn primary-link" href="#scanner">Start a scan</a>
-        <a class="btn secondary-link" href="{{ url_for('lab') }}">Open AI Safety Lab</a>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SecureAI</title>
+<style>
+:root{--bg:#0f1420;--card:#171e2e;--line:#26304a;--text:#e6ebf5;--mute:#8b97b3;--acc:#5b8cff;--low:#2fbf71;--med:#f2b134;--high:#ef5350}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,Segoe UI,Roboto,sans-serif}
+header{padding:18px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+header h1{font-size:20px;margin:0}header span{color:var(--mute)}
+.wrap{max-width:1100px;margin:0 auto;padding:20px;display:grid;grid-template-columns:2fr 1fr;gap:20px}
+@media(max-width:860px){.wrap{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+.tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.tab{background:none;border:1px solid var(--line);color:var(--mute);padding:8px 14px;border-radius:8px;cursor:pointer}
+.tab.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+textarea,input,select{width:100%;background:#0c111c;border:1px solid var(--line);color:var(--text);border-radius:8px;padding:10px;font:inherit}
+textarea{min-height:120px;resize:vertical}
+button.go{margin-top:10px;background:var(--acc);color:#fff;border:0;padding:10px 18px;border-radius:8px;cursor:pointer;font-weight:600}
+button.go:disabled{opacity:.5}
+.hidden{display:none}
+.gauge{display:flex;align-items:center;gap:16px;margin:16px 0}
+.ring{width:84px;height:84px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:22px}
+.badge{padding:2px 10px;border-radius:99px;font-size:12px;font-weight:700;text-transform:uppercase}
+.low{color:var(--low)}.medium{color:var(--med)}.high,.fail,.critical{color:var(--high)}.pass{color:var(--low)}
+.f{border-top:1px solid var(--line);padding:10px 0}
+.f b{display:flex;justify-content:space-between}
+.bar{height:6px;border-radius:4px;background:var(--line);margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%}
+.mute{color:var(--mute);font-size:13px}
+code{background:#0c111c;padding:2px 6px;border-radius:4px;font-size:13px;word-break:break-word}
+table{width:100%;border-collapse:collapse}td,th{padding:8px 6px;text-align:left;border-top:1px solid var(--line);vertical-align:top;font-size:14px}
+.aicard{border:1px solid var(--acc);border-radius:10px;padding:14px;margin:14px 0;background:#121a2e}
+.aicard h4{margin:0 0 6px;display:flex;justify-content:space-between;gap:8px}
+.aicard ul{margin:8px 0 0;padding-left:18px}
+.warn{color:var(--med);font-size:13px}
+.opt{display:flex;align-items:center;gap:8px;margin-top:10px;color:var(--mute);font-size:14px}
+.opt input{width:auto}
+.hist div{display:flex;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding:7px 0;font-size:13px}
+</style>
+</head>
+<body>
+<header><h1>🛡️ SecureAI</h1><span>Message &amp; URL risk analysis · AI agent robustness lab</span></header>
+<div class="wrap">
+  <main class="card">
+    <div class="tabs">
+      <button class="tab on" data-t="msg">Message</button>
+      <button class="tab" data-t="url">URL</button>
+      <button class="tab" data-t="lab">AI Agent Lab</button>
     </div>
 
-    {% if is_admin %}
-    <div class="hero-stats" id="heroStats">
-        <div><strong id="heroTotal">0</strong><span>scans saved</span></div>
-        <div><strong id="heroHigh">0</strong><span>high-risk found</span></div>
-        <div><strong id="heroAvg">0</strong><span>average risk score</span></div>
-    </div>
-    {% endif %}
-</header>
-
-<main class="container">
-
-    <section id="scanner">
-        <div class="section-heading">
-            <h2>Security Scanner</h2>
-            <p>Scan a message or inspect a suspicious URL.</p>
-        </div>
-
-        <label class="check-row" for="useAi">
-            <input type="checkbox" id="useAi" {% if ai_on %}checked{% else %}disabled{% endif %}>
-            <span>
-                Use AI analysis as well
-                {% if not ai_on %}<em>(off: no ANTHROPIC_API_KEY configured, rule-based checks only)</em>{% endif %}
-            </span>
-        </label>
-
-        <div class="scanner-grid">
-
-            <div class="card">
-                <h3>Message Scanner</h3>
-                <p class="description">Review suspicious emails, SMS messages, and text.</p>
-
-                <form id="messageForm">
-                    <label for="message">Message to analyse</label>
-                    <textarea id="message" maxlength="5000"
-                              placeholder="Paste your suspicious message here..." required></textarea>
-                    <button class="primary-btn" id="messageButton" type="submit">Analyse Message</button>
-                </form>
-
-                <p class="error" id="messageError" aria-live="polite"></p>
-
-                <div class="result" id="messageResult" aria-live="polite">
-                    <h4>Message Analysis Report</h4>
-                    <div class="score" id="messageScore"></div>
-                    <div class="meter"><div class="meter-fill" id="messageMeter"></div></div>
-                    <p id="messageRisk"></p>
-                    <div class="chips" id="messageCategories"></div>
-                    <ul class="warning-list" id="messageWarnings"></ul>
-                    <div class="ai-box" id="messageAi"></div>
-                    <p class="saved-note">Saved to history</p>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>Phishing URL Checker</h3>
-                <p class="description">Check a website address for suspicious indicators.</p>
-
-                <form id="urlForm">
-                    <label for="url">Website URL</label>
-                    <input type="text" id="url" placeholder="https://example.com" required>
-                    <button class="primary-btn" id="urlButton" type="submit">Check URL</button>
-                </form>
-
-                <p class="error" id="urlError" aria-live="polite"></p>
-
-                <div class="result" id="urlResult" aria-live="polite">
-                    <h4>URL Analysis Report</h4>
-                    <div class="score" id="urlScore"></div>
-                    <div class="meter"><div class="meter-fill" id="urlMeter"></div></div>
-                    <p id="urlRisk"></p>
-                    <div class="chips" id="urlCategories"></div>
-                    <ul class="warning-list" id="urlWarnings"></ul>
-                    <div class="ai-box" id="urlAi"></div>
-                    <p class="saved-note">Saved to history</p>
-                </div>
-            </div>
-
-        </div>
+    <section id="msg">
+      <textarea id="msgIn" placeholder="Paste a suspicious SMS, email or chat message…"></textarea>
+      <label class="opt"><input type="checkbox" class="aiBox" checked> AI deep scan (Claude)</label>
+      <button class="go" id="msgGo">Analyse message</button>
+    </section>
+    <section id="url" class="hidden">
+      <input id="urlIn" placeholder="https://example.com/login">
+      <label class="opt"><input type="checkbox" class="aiBox" checked> AI deep scan (Claude)</label>
+      <button class="go" id="urlGo">Analyse URL</button>
+      <p class="mute">URLs are analysed statically — SecureAI never visits them.</p>
+    </section>
+    <section id="lab" class="hidden">
+      <p class="mute">Embeds known prompt-injection patterns in an untrusted document and checks whether the agent leaks a secret canary or obeys the planted instruction.</p>
+      <select id="target"></select>
+      <button class="go" id="labGo">Run injection suite</button>
     </section>
 
-    <section id="features" class="spaced">
-        <div class="section-heading">
-            <h2>What you get</h2>
-            <p>Built to explore the security challenges of real users meeting AI systems.</p>
-        </div>
+    <div id="out"></div>
+  </main>
 
-        <div class="features">
-            <article class="feature">
-                <h3>Rules + AI scanning</h3>
-                <p>Rule-based scoring plus an AI second opinion. The final verdict is the more cautious of the two.</p>
-            </article>
-            <article class="feature">
-                <h3>AI Agent Safety Lab</h3>
-                <p>Run 25 attacks (prompt leakage, injection, impersonation, scams) against an assistant and see where it breaks.</p>
-            </article>
-            <article class="feature">
-                <h3>Attack monitoring</h3>
-                <p>Every scan is tagged by attack type, so the dashboard shows what people actually send.</p>
-            </article>
-            <article class="feature">
-                <h3>Permanent history</h3>
-                <p>Scans and lab runs are stored in a local SQLite database and can be exported as CSV or TXT.</p>
-            </article>
-            <article class="feature">
-                <h3>Hardened by design</h3>
-                <p>CSRF protection, rate limits, admin login, strict headers, and AI prompts that treat input as data.</p>
-            </article>
-            <article class="feature">
-                <h3>Awareness tips</h3>
-                <p>Learn the red flags of phishing and what to do if you already clicked.</p>
-            </article>
-        </div>
+  <aside class="card">
+    <h3 style="margin-top:0">Recent scans</h3>
+    <div class="hist" id="hist"><span class="mute">Nothing yet.</span></div>
+  </aside>
+</div>
 
-        <p class="more-link"><a href="{{ url_for('awareness') }}">Read the full safety guide &rarr;</a></p>
-    </section>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const color = l => ({low:'var(--low)',medium:'var(--med)',high:'var(--high)'}[l]);
 
-</main>
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b));
+  ['msg','url','lab'].forEach(id => $('#'+id).classList.toggle('hidden', id !== b.dataset.t));
+  $('#out').innerHTML = '';
+});
 
-{% endblock %}
+async function post(path, body) {
+  const r = await fetch(path, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || 'Request failed');
+  return j;
+}
 
-{% block scripts %}
-<script src="{{ url_for('static', filename='common.js') }}"></script>
-<script src="{{ url_for('static', filename='scanner.js') }}"></script>
-{% endblock %}
+function gauge(score, level) {
+  const c = color(level);
+  return `<div class="gauge"><div class="ring" style="background:conic-gradient(${c} ${score*3.6}deg,var(--line) 0);position:relative">
+    <div style="position:absolute;inset:8px;background:var(--card);border-radius:50%;display:grid;place-items:center;color:${c}">${score}</div></div>
+    <div><span class="badge" style="background:${c};color:#111">${level} risk</span><div class="mute">Risk score out of 100</div></div></div>`;
+}
+
+function aiPanel(r) {
+  if (r.ai_error) return `<p class="warn">⚠ ${esc(r.ai_error)}</p>`;
+  if (!r.ai) return '';
+  const a = r.ai, vc = {safe:'low', suspicious:'medium', malicious:'high'}[a.verdict];
+  return `<div class="aicard">
+    <h4><span>🤖 AI verdict: <span class="${vc}">${esc(a.verdict)}</span></span>
+    <span class="mute">${esc(a.threat_type)} · ${esc(a.confidence)} confidence</span></h4>
+    <div class="mute">AI ${a.risk_score}/100 · rules ${r.heuristic_score}/100 → combined ${r.score}/100</div>
+    ${a.contains_prompt_injection ? '<p class="warn">⚠ Content tries to manipulate an AI assistant.</p>' : ''}
+    <ul>${a.reasons.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+    <p><b>Do this:</b> ${esc(a.recommended_action)}</p></div>`;
+}
+
+function findings(list) {
+  if (!list.length) return '<p class="mute">No suspicious signals detected.</p>';
+  return list.map(f => `<div class="f"><b><span>${esc(f.name)}</span><span class="mute">+${f.weight}</span></b>
+    <div class="mute">${esc(f.detail)}${f.match ? ' — matched <code>'+esc(f.match)+'</code>' : ''}</div>
+    <div class="bar"><i style="width:${Math.min(f.weight*3,100)}%;background:var(--acc)"></i></div></div>`).join('');
+}
+
+const useAI = sec => $(sec + ' .aiBox').checked && !$(sec + ' .aiBox').disabled;
+
+async function run(btn, fn) {
+  btn.disabled = true; $('#out').innerHTML = '<p class="mute">Working…</p>';
+  try { await fn(); } catch (e) { $('#out').innerHTML = `<p class="high">${esc(e.message)}</p>`; }
+  btn.disabled = false; loadHist();
+}
+
+$('#msgGo').onclick = e => run(e.target, async () => {
+  const r = await post('/api/analyze-message', {text: $('#msgIn').value, ai: useAI('#msg')});
+  $('#out').innerHTML = gauge(r.score, r.level) + aiPanel(r) + `<p><b>Advice:</b> ${esc(r.advice)}</p>` + findings(r.findings) +
+    (r.urls.length ? '<h4>Links found</h4>' + r.urls.map(u => `<div class="f"><code>${esc(u.input)}</code> — <span class="${u.level}">${u.score}/100</span></div>`).join('') : '');
+});
+
+$('#urlGo').onclick = e => run(e.target, async () => {
+  const r = await post('/api/analyze-url', {url: $('#urlIn').value, ai: useAI('#url')});
+  $('#out').innerHTML = gauge(r.score, r.level) + aiPanel(r) + `<p class="mute">Host: <code>${esc(r.host || '-')}</code></p>` + findings(r.findings);
+});
+
+$('#labGo').onclick = e => run(e.target, async () => {
+  const r = await post('/api/lab/run', {target: $('#target').value});
+  const lvl = r.resilience >= 80 ? 'low' : r.resilience >= 50 ? 'medium' : 'high';
+  $('#out').innerHTML = `<div class="gauge"><div><div style="font-size:34px;font-weight:700;color:${color(lvl)}">${r.resilience ?? 'n/a'}%</div>
+    <div class="mute">${r.passed}/${r.total} attacks resisted · ${r.failed} succeeded</div></div></div>
+    <table><tr><th>Attack</th><th>Severity</th><th>Result</th><th>Agent output</th></tr>` +
+    r.results.map(x => `<tr><td>${esc(x.id)}<div class="mute">${esc(x.category)}</div></td><td class="${x.severity}">${x.severity}</td>
+      <td class="${x.status}">${x.status.toUpperCase()}<div class="mute">${esc(x.reason)}</div></td><td><code>${esc(x.output)}</code></td></tr>`).join('') + '</table>';
+});
+
+async function loadHist() {
+  const h = await (await fetch('/api/history')).json();
+  $('#hist').innerHTML = h.length ? h.map(x => `<div><span>${x.time} · ${x.kind}<br><span class="mute">${esc(x.summary)}</span></span><b>${x.score}</b></div>`).join('') : '<span class="mute">Nothing yet.</span>';
+}
+
+(async () => {
+  const info = await (await fetch('/api/lab/info')).json();
+  $('#target').innerHTML = info.targets.map(t => `<option>${t}</option>`).join('');
+  const cfg = await (await fetch('/api/config')).json();
+  if (!cfg.ai_available) document.querySelectorAll('.aiBox').forEach(b => {
+    b.checked = false; b.disabled = true;
+    b.parentElement.append(' — set ANTHROPIC_API_KEY on the server to enable');
+  });
+  loadHist();
+})();
+</script>
+</body>
+</html>

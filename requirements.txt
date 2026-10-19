@@ -1,3 +1,2 @@
-flask
-anthropic
-
+flask>=3.0
+openai>=1.40      # AI deep scan (if you use an OpenAI key)
