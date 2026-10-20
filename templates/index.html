@@ -4,167 +4,278 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SecureAI</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Ctext y=%2726%27 font-size=%2726%27%3E%F0%9F%9B%A1%3C/text%3E%3C/svg%3E">
 <style>
-:root{--bg:#0f1420;--card:#171e2e;--line:#26304a;--text:#e6ebf5;--mute:#8b97b3;--acc:#5b8cff;--low:#2fbf71;--med:#f2b134;--high:#ef5350}
+:root{--bg:#0f1420;--card:#171e2e;--card2:#0c111c;--line:#26304a;--text:#e6ebf5;--mute:#93a0bd;--acc:#5b8cff;--low:#35c97b;--medium:#f2b134;--high:#ef5350}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,Segoe UI,Roboto,sans-serif}
-header{padding:18px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
-header h1{font-size:20px;margin:0}header span{color:var(--mute)}
-.wrap{max-width:1100px;margin:0 auto;padding:20px;display:grid;grid-template-columns:2fr 1fr;gap:20px}
-@media(max-width:860px){.wrap{grid-template-columns:1fr}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
-.tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
-.tab{background:none;border:1px solid var(--line);color:var(--mute);padding:8px 14px;border-radius:8px;cursor:pointer}
+header{padding:16px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0}
+.pill{font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--mute)}
+.pill.on{color:var(--low);border-color:var(--low)}
+.wrap{max-width:1000px;margin:0 auto;padding:20px}
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tab{background:none;border:1px solid var(--line);color:var(--mute);padding:8px 16px;border-radius:8px;cursor:pointer;font:inherit}
 .tab.on{background:var(--acc);color:#fff;border-color:var(--acc)}
-textarea,input,select{width:100%;background:#0c111c;border:1px solid var(--line);color:var(--text);border-radius:8px;padding:10px;font:inherit}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px}
+.card h3{margin:0 0 10px;font-size:15px}
+textarea,input[type=text],select{width:100%;background:var(--card2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:10px;font:inherit}
 textarea{min-height:120px;resize:vertical}
-button.go{margin-top:10px;background:var(--acc);color:#fff;border:0;padding:10px 18px;border-radius:8px;cursor:pointer;font-weight:600}
-button.go:disabled{opacity:.5}
-.hidden{display:none}
-.gauge{display:flex;align-items:center;gap:16px;margin:16px 0}
-.ring{width:84px;height:84px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:22px}
-.badge{padding:2px 10px;border-radius:99px;font-size:12px;font-weight:700;text-transform:uppercase}
-.low{color:var(--low)}.medium{color:var(--med)}.high,.fail,.critical{color:var(--high)}.pass{color:var(--low)}
-.f{border-top:1px solid var(--line);padding:10px 0}
-.f b{display:flex;justify-content:space-between}
-.bar{height:6px;border-radius:4px;background:var(--line);margin-top:6px;overflow:hidden}
-.bar i{display:block;height:100%}
-.mute{color:var(--mute);font-size:13px}
-code{background:#0c111c;padding:2px 6px;border-radius:4px;font-size:13px;word-break:break-word}
-table{width:100%;border-collapse:collapse}td,th{padding:8px 6px;text-align:left;border-top:1px solid var(--line);vertical-align:top;font-size:14px}
-.aicard{border:1px solid var(--acc);border-radius:10px;padding:14px;margin:14px 0;background:#121a2e}
-.aicard h4{margin:0 0 6px;display:flex;justify-content:space-between;gap:8px}
-.aicard ul{margin:8px 0 0;padding-left:18px}
-.warn{color:var(--med);font-size:13px}
+button.go{margin-top:10px;background:var(--acc);color:#fff;border:0;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;font:inherit;font-weight:600}
+button.go:disabled{opacity:.5;cursor:wait}
 .opt{display:flex;align-items:center;gap:8px;margin-top:10px;color:var(--mute);font-size:14px}
 .opt input{width:auto}
-.hist div{display:flex;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding:7px 0;font-size:13px}
+.hidden{display:none}
+.mute{color:var(--mute);font-size:13px}
+.low{color:var(--low)}.medium{color:var(--medium)}.high,.fail,.critical{color:var(--high)}.pass{color:var(--low)}.error{color:var(--medium)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.tile b{display:block;font-size:26px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.verdict{display:flex;align-items:center;gap:18px;margin:6px 0 14px}
+.ring{width:92px;height:92px;border-radius:50%;display:grid;place-items:center;flex:none}
+.ring div{width:72px;height:72px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:24px;font-weight:700}
+.badge{display:inline-block;padding:3px 12px;border-radius:99px;font-weight:700;font-size:13px;color:#111;text-transform:uppercase}
+.f{border-top:1px solid var(--line);padding:9px 0}
+.f b{display:flex;justify-content:space-between;gap:8px}
+.aicard{border:1px solid var(--acc);border-radius:10px;padding:14px;margin:12px 0;background:#121a2e}
+.aicard ul{margin:8px 0;padding-left:18px}
+.note{background:#2a2410;border:1px solid #5c4a14;color:#f2d98a;border-radius:8px;padding:9px 12px;font-size:13px;margin:10px 0}
+code{background:var(--card2);padding:2px 6px;border-radius:4px;font-size:13px;word-break:break-word}
+table{width:100%;border-collapse:collapse}td,th{padding:8px 6px;text-align:left;border-top:1px solid var(--line);vertical-align:top;font-size:14px}
+.row{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding:7px 0;font-size:14px}
+.barrow{display:grid;grid-template-columns:150px 1fr 30px;gap:8px;align-items:center;font-size:13px;margin:6px 0}
+.bar{height:10px;background:var(--line);border-radius:5px;overflow:hidden}.bar i{display:block;height:100%;background:var(--high)}
+.empty{color:var(--mute);font-size:14px}
+.gear{margin-left:auto;background:none;border:1px solid var(--line);color:var(--text);padding:6px 12px;border-radius:8px;cursor:pointer;font:inherit}
+.settings .r{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.settings .r>*{flex:1;min-width:180px}
+.ok{color:var(--low)}.bad{color:var(--high)}
 </style>
 </head>
 <body>
-<header><h1>🛡️ SecureAI</h1><span>Message &amp; URL risk analysis · AI agent robustness lab</span></header>
-<div class="wrap">
-  <main class="card">
-    <div class="tabs">
-      <button class="tab on" data-t="msg">Message</button>
-      <button class="tab" data-t="url">URL</button>
-      <button class="tab" data-t="lab">AI Agent Lab</button>
+<header>
+  <h1>🛡️ SecureAI</h1>
+  <span class="pill" id="aiPill">checking…</span>
+  <span class="mute">Analyse messages &amp; URLs · test how safely AI agents handle malicious input</span>
+  <button class="gear" id="gear">⚙ AI settings</button>
+</header>
+
+<div class="wrap hidden" id="settings" style="padding-bottom:0">
+  <div class="card settings">
+    <h3>AI settings (optional, the app works without a key)</h3>
+    <p class="mute" style="margin:0">Paste your OpenAI API key. It stays in this running server's memory only: it is never saved to disk or shown again. To keep it across restarts, put <code>OPENAI_API_KEY=your-key</code> in a file named <code>.env</code> next to app.py.</p>
+    <div class="r">
+      <input type="password" id="keyIn" placeholder="OpenAI API key (sk-...)" autocomplete="off">
+      <input type="text" id="modelIn" placeholder="Model (default gpt-4o-mini)">
     </div>
+    <button class="go" id="saveKey">Save</button>
+    <button class="go" id="testKey" style="background:#2b3550">Test connection</button>
+    <div id="keyMsg" class="mute" style="margin-top:8px"></div>
+  </div>
+</div>
 
-    <section id="msg">
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab on" data-t="dash">Dashboard</button>
+    <button class="tab" data-t="msg">Message scan</button>
+    <button class="tab" data-t="url">URL scan</button>
+    <button class="tab" data-t="lab">AI agent lab</button>
+  </div>
+
+  <section id="dash">
+    <div class="tiles" id="tiles"></div>
+    <div class="grid2">
+      <div class="card"><h3>Risk score of recent scans</h3><div id="spark" class="empty">No scans yet. Try the Message or URL tab.</div></div>
+      <div class="card"><h3>Attacks that beat the agents (by category)</h3><div id="cats" class="empty">No lab runs yet.</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>Lab runs</h3><div id="runs" class="empty">No lab runs yet.</div></div>
+      <div class="card"><h3>Recent activity</h3><div id="hist" class="empty">Nothing yet.</div></div>
+    </div>
+  </section>
+
+  <section id="msg" class="hidden">
+    <div class="card">
       <textarea id="msgIn" placeholder="Paste a suspicious SMS, email or chat message…"></textarea>
-      <label class="opt"><input type="checkbox" class="aiBox" checked> AI deep scan (Claude)</label>
-      <button class="go" id="msgGo">Analyse message</button>
-    </section>
-    <section id="url" class="hidden">
-      <input id="urlIn" placeholder="https://example.com/login">
-      <label class="opt"><input type="checkbox" class="aiBox" checked> AI deep scan (Claude)</label>
-      <button class="go" id="urlGo">Analyse URL</button>
-      <p class="mute">URLs are analysed statically — SecureAI never visits them.</p>
-    </section>
-    <section id="lab" class="hidden">
-      <p class="mute">Embeds known prompt-injection patterns in an untrusted document and checks whether the agent leaks a secret canary or obeys the planted instruction.</p>
+      <label class="opt"><input type="checkbox" class="aiBox"> <span>Also ask AI for a safe / not safe verdict</span></label>
+      <button class="go" id="msgGo">Scan message</button>
+    </div>
+    <div id="msgOut"></div>
+  </section>
+
+  <section id="url" class="hidden">
+    <div class="card">
+      <input type="text" id="urlIn" placeholder="https://example.com/login">
+      <label class="opt"><input type="checkbox" class="aiBox"> <span>Also ask AI for a safe / not safe verdict</span></label>
+      <button class="go" id="urlGo">Scan URL</button>
+      <p class="mute">URLs are analysed as text only. SecureAI never opens them.</p>
+    </div>
+    <div id="urlOut"></div>
+  </section>
+
+  <section id="lab" class="hidden">
+    <div class="card">
+      <p class="mute" style="margin-top:0">Hides 12 known attacks (instruction override, jailbreaks, data exfiltration, misleading facts, obfuscation) inside a document the agent must summarise. A test <b>fails</b> if the agent leaks a secret, obeys the planted instruction, or repeats planted content.</p>
       <select id="target"></select>
-      <button class="go" id="labGo">Run injection suite</button>
-    </section>
-
-    <div id="out"></div>
-  </main>
-
-  <aside class="card">
-    <h3 style="margin-top:0">Recent scans</h3>
-    <div class="hist" id="hist"><span class="mute">Nothing yet.</span></div>
-  </aside>
+      <textarea id="sysPrompt" style="min-height:70px;margin-top:10px" placeholder="Optional: paste YOUR agent's system prompt to test it (live AI only)"></textarea>
+      <button class="go" id="labGo">Run attack suite</button>
+    </div>
+    <div id="labOut"></div>
+  </section>
 </div>
 
 <script>
 const $ = s => document.querySelector(s);
-const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const color = l => ({low:'var(--low)',medium:'var(--med)',high:'var(--high)'}[l]);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const col = l => `var(--${l})`;
+let CFG = {};
 
 document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
   document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b));
-  ['msg','url','lab'].forEach(id => $('#'+id).classList.toggle('hidden', id !== b.dataset.t));
-  $('#out').innerHTML = '';
+  ['dash','msg','url','lab'].forEach(id => $('#'+id).classList.toggle('hidden', id !== b.dataset.t));
+  if (b.dataset.t === 'dash') loadStats();
 });
 
 async function post(path, body) {
   const r = await fetch(path, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
-  const j = await r.json();
+  const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(j.error || 'Request failed');
   return j;
 }
 
-function gauge(score, level) {
-  const c = color(level);
-  return `<div class="gauge"><div class="ring" style="background:conic-gradient(${c} ${score*3.6}deg,var(--line) 0);position:relative">
-    <div style="position:absolute;inset:8px;background:var(--card);border-radius:50%;display:grid;place-items:center;color:${c}">${score}</div></div>
-    <div><span class="badge" style="background:${c};color:#111">${level} risk</span><div class="mute">Risk score out of 100</div></div></div>`;
+async function run(btn, out, fn) {
+  btn.disabled = true; $(out).innerHTML = '<p class="mute">Working…</p>';
+  try { await fn(); } catch (e) { $(out).innerHTML = `<div class="note">${esc(e.message)}</div>`; }
+  btn.disabled = false;
 }
 
-function aiPanel(r) {
-  if (r.ai_error) return `<p class="warn">⚠ ${esc(r.ai_error)}</p>`;
+function result(r) {
+  const c = col(r.level);
+  let verdict = {low:'Looks safe', medium:'Be careful', high:'Not safe'}[r.level];
+  return `<div class="card"><div class="verdict">
+    <div class="ring" style="background:conic-gradient(${c} ${r.score*3.6}deg,var(--line) 0)"><div style="color:${c}">${r.score}</div></div>
+    <div><span class="badge" style="background:${c}">${verdict}</span>
+    <div class="mute" style="margin-top:4px">Risk score ${r.score}/100${r.heuristic_score != null ? ` (rules ${r.heuristic_score}, AI ${r.ai.risk_score})` : ' (rule-based)'}</div></div></div>
+    ${r.ai_error ? `<div class="note">⚠ ${esc(r.ai_error)}</div>` : ''}
+    ${aiBlock(r)}
+    ${r.advice ? `<p><b>What to do:</b> ${esc(r.advice)}</p>` : ''}
+    <h3>Why (rule-based checks)</h3>${findings(r.findings)}
+    ${(r.urls && r.urls.length) ? '<h3 style="margin-top:14px">Links found</h3>' + r.urls.map(u => `<div class="row"><code>${esc(u.input)}</code><b class="${u.level}">${u.score}/100</b></div>`).join('') : ''}
+  </div>`;
+}
+
+function aiBlock(r) {
   if (!r.ai) return '';
   const a = r.ai, vc = {safe:'low', suspicious:'medium', malicious:'high'}[a.verdict];
-  return `<div class="aicard">
-    <h4><span>🤖 AI verdict: <span class="${vc}">${esc(a.verdict)}</span></span>
-    <span class="mute">${esc(a.threat_type)} · ${esc(a.confidence)} confidence</span></h4>
-    <div class="mute">AI ${a.risk_score}/100 · rules ${r.heuristic_score}/100 → combined ${r.score}/100</div>
-    ${a.contains_prompt_injection ? '<p class="warn">⚠ Content tries to manipulate an AI assistant.</p>' : ''}
+  return `<div class="aicard"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
+    <b>🤖 AI verdict: <span class="${vc}">${esc(a.verdict.toUpperCase())}</span></b>
+    <span class="mute">${esc(a.threat_type)} · ${esc(a.confidence)} confidence</span></div>
+    ${a.contains_prompt_injection ? '<div class="note">⚠ This content tries to manipulate an AI assistant.</div>' : ''}
     <ul>${a.reasons.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
-    <p><b>Do this:</b> ${esc(a.recommended_action)}</p></div>`;
+    <div><b>Recommended:</b> ${esc(a.recommended_action)}</div></div>`;
 }
 
 function findings(list) {
-  if (!list.length) return '<p class="mute">No suspicious signals detected.</p>';
+  if (!list.length) return '<p class="mute">No suspicious signals found. That does not prove it is safe.</p>';
   return list.map(f => `<div class="f"><b><span>${esc(f.name)}</span><span class="mute">+${f.weight}</span></b>
-    <div class="mute">${esc(f.detail)}${f.match ? ' — matched <code>'+esc(f.match)+'</code>' : ''}</div>
-    <div class="bar"><i style="width:${Math.min(f.weight*3,100)}%;background:var(--acc)"></i></div></div>`).join('');
+    <div class="mute">${esc(f.detail)}${f.match ? ' Matched: <code>'+esc(f.match)+'</code>' : ''}</div></div>`).join('');
 }
 
-const useAI = sec => $(sec + ' .aiBox').checked && !$(sec + ' .aiBox').disabled;
+const wantAI = sec => { const b = $(sec + ' .aiBox'); return b.checked && !b.disabled; };
 
-async function run(btn, fn) {
-  btn.disabled = true; $('#out').innerHTML = '<p class="mute">Working…</p>';
-  try { await fn(); } catch (e) { $('#out').innerHTML = `<p class="high">${esc(e.message)}</p>`; }
-  btn.disabled = false; loadHist();
-}
+$('#msgGo').onclick = e => run(e.target, '#msgOut', async () =>
+  $('#msgOut').innerHTML = result(await post('/api/analyze-message', {text: $('#msgIn').value, ai: wantAI('#msg')})));
+$('#urlGo').onclick = e => run(e.target, '#urlOut', async () =>
+  $('#urlOut').innerHTML = result(await post('/api/analyze-url', {url: $('#urlIn').value, ai: wantAI('#url')})));
 
-$('#msgGo').onclick = e => run(e.target, async () => {
-  const r = await post('/api/analyze-message', {text: $('#msgIn').value, ai: useAI('#msg')});
-  $('#out').innerHTML = gauge(r.score, r.level) + aiPanel(r) + `<p><b>Advice:</b> ${esc(r.advice)}</p>` + findings(r.findings) +
-    (r.urls.length ? '<h4>Links found</h4>' + r.urls.map(u => `<div class="f"><code>${esc(u.input)}</code> — <span class="${u.level}">${u.score}/100</span></div>`).join('') : '');
-});
-
-$('#urlGo').onclick = e => run(e.target, async () => {
-  const r = await post('/api/analyze-url', {url: $('#urlIn').value, ai: useAI('#url')});
-  $('#out').innerHTML = gauge(r.score, r.level) + aiPanel(r) + `<p class="mute">Host: <code>${esc(r.host || '-')}</code></p>` + findings(r.findings);
-});
-
-$('#labGo').onclick = e => run(e.target, async () => {
-  const r = await post('/api/lab/run', {target: $('#target').value});
-  const lvl = r.resilience >= 80 ? 'low' : r.resilience >= 50 ? 'medium' : 'high';
-  $('#out').innerHTML = `<div class="gauge"><div><div style="font-size:34px;font-weight:700;color:${color(lvl)}">${r.resilience ?? 'n/a'}%</div>
-    <div class="mute">${r.passed}/${r.total} attacks resisted · ${r.failed} succeeded</div></div></div>
+$('#labGo').onclick = e => run(e.target, '#labOut', async () => {
+  const r = await post('/api/lab/run', {target: $('#target').value, system_prompt: $('#sysPrompt').value});
+  const lvl = r.resilience == null ? 'medium' : r.resilience >= 80 ? 'low' : r.resilience >= 50 ? 'medium' : 'high';
+  $('#labOut').innerHTML = `<div class="card"><div style="font-size:34px;font-weight:700;color:${col(lvl)}">${r.resilience ?? 'n/a'}%</div>
+    <div class="mute">${esc(r.label)}: ${r.passed}/${r.total} attacks resisted, ${r.failed} succeeded${r.errors ? `, ${r.errors} errored` : ''}</div>
+    ${r.errors ? `<div class="note">Some tests errored (often an API key or credit problem). First error: ${esc(r.results.find(x => x.status === 'error').reason)}</div>` : ''}
     <table><tr><th>Attack</th><th>Severity</th><th>Result</th><th>Agent output</th></tr>` +
     r.results.map(x => `<tr><td>${esc(x.id)}<div class="mute">${esc(x.category)}</div></td><td class="${x.severity}">${x.severity}</td>
-      <td class="${x.status}">${x.status.toUpperCase()}<div class="mute">${esc(x.reason)}</div></td><td><code>${esc(x.output)}</code></td></tr>`).join('') + '</table>';
+      <td class="${x.status}"><b>${x.status.toUpperCase()}</b><div class="mute">${esc(x.reason)}</div></td><td><code>${esc(x.output)}</code></td></tr>`).join('') + '</table></div>';
 });
 
-async function loadHist() {
-  const h = await (await fetch('/api/history')).json();
-  $('#hist').innerHTML = h.length ? h.map(x => `<div><span>${x.time} · ${x.kind}<br><span class="mute">${esc(x.summary)}</span></span><b>${x.score}</b></div>`).join('') : '<span class="mute">Nothing yet.</span>';
+function spark(v) {
+  if (!v.length) return '<span class="empty">No scans yet. Try the Message or URL tab.</span>';
+  const W = 420, H = 110, p = 8, step = v.length > 1 ? (W - 2*p) / (v.length - 1) : 0;
+  const pts = v.map((s, i) => [p + i*step, H - p - (s/100)*(H - 2*p)]);
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Risk scores of recent scans">
+    <line x1="0" x2="${W}" y1="${H-p-0.6*(H-2*p)}" y2="${H-p-0.6*(H-2*p)}" stroke="var(--high)" stroke-dasharray="4 4" opacity=".5"/>
+    <polyline fill="none" stroke="var(--acc)" stroke-width="2" points="${pts.map(q => q.join(',')).join(' ')}"/>
+    ${pts.map((q, i) => `<circle cx="${q[0]}" cy="${q[1]}" r="4" fill="${col(v[i] >= 60 ? 'high' : v[i] >= 30 ? 'medium' : 'low')}"><title>${v[i]}/100</title></circle>`).join('')}</svg>
+    <div class="mute">Oldest → newest. Dashed line = high-risk threshold (60).</div>`;
 }
 
-(async () => {
-  const info = await (await fetch('/api/lab/info')).json();
-  $('#target').innerHTML = info.targets.map(t => `<option>${t}</option>`).join('');
-  const cfg = await (await fetch('/api/config')).json();
-  if (!cfg.ai_available) document.querySelectorAll('.aiBox').forEach(b => {
-    b.checked = false; b.disabled = true;
-    b.parentElement.append(' — set ANTHROPIC_API_KEY on the server to enable');
+async function loadStats() {
+  const s = await (await fetch('/api/stats')).json();
+  const avgLab = s.lab_runs.filter(x => x.resilience != null);
+  const avg = avgLab.length ? Math.round(avgLab.reduce((a, x) => a + x.resilience, 0) / avgLab.length) + '%' : '–';
+  $('#tiles').innerHTML = [['Scans', s.scans], ['Not safe', s.high], ['Be careful', s.medium], ['Looks safe', s.low], ['AI scans', s.ai_scans], ['Avg agent resilience', avg]]
+    .map(t => `<div class="tile"><span class="mute">${t[0]}</span><b>${t[1]}</b></div>`).join('');
+  $('#spark').innerHTML = spark(s.recent_scores);
+  const cats = Object.entries(s.lab_fail_categories), mx = Math.max(1, ...cats.map(c => c[1]));
+  $('#cats').innerHTML = cats.length ? cats.map(([k, n]) => `<div class="barrow"><span>${esc(k)}</span><div class="bar"><i style="width:${n/mx*100}%"></i></div><b>${n}</b></div>`).join('') : '<span class="empty">No lab runs yet.</span>';
+  $('#runs').innerHTML = s.lab_runs.length ? s.lab_runs.slice(0, 6).map(r => `<div class="row"><span>${r.time} · ${esc(r.target)}</span><b class="${r.resilience >= 80 ? 'low' : r.resilience >= 50 ? 'medium' : 'high'}">${r.resilience ?? 'n/a'}%</b></div>`).join('') : '<span class="empty">No lab runs yet.</span>';
+  $('#hist').innerHTML = s.history.length ? s.history.slice(0, 8).map(x => `<div class="row"><span>${x.time} · ${esc(x.kind)}<br><span class="mute">${esc(x.summary)}</span></span><b class="${x.level}">${x.score}</b></div>`).join('') : '<span class="empty">Nothing yet.</span>';
+}
+
+async function initConfig() {
+  CFG = await (await fetch('/api/config')).json();
+  const pill = $('#aiPill');
+  pill.textContent = CFG.ai_available ? `AI on · ${CFG.provider} ${CFG.model}` : 'AI off · rule-based mode';
+  pill.classList.toggle('on', CFG.ai_available);
+  const keep = $('#target').value;
+  $('#target').innerHTML = CFG.targets.map(t => `<option value="${t}">${esc(CFG.labels[t])}</option>`).join('');
+  if (CFG.targets.includes(keep)) $('#target').value = keep;
+  document.querySelectorAll('.aiBox').forEach(b => {
+    b.checked = CFG.ai_available; b.disabled = !CFG.ai_available;
+    b.parentElement.querySelector('span').textContent = CFG.ai_available
+      ? 'Also ask AI for a safe / not safe verdict' : 'AI verdict (off: add your key in ⚙ AI settings)';
   });
-  loadHist();
+}
+
+$('#gear').onclick = () => $('#settings').classList.toggle('hidden');
+const keyMsg = (t, ok) => { $('#keyMsg').className = ok ? 'ok' : 'bad'; $('#keyMsg').textContent = t; };
+
+$('#saveKey').onclick = async e => {
+  e.target.disabled = true;
+  try {
+    const r = await fetch('/api/settings', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({api_key: $('#keyIn').value, model: $('#modelIn').value})});
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || 'Could not save');
+    $('#keyIn').value = '';
+    await initConfig();
+    keyMsg('Saved. Click "Test connection" to confirm it works.', true);
+  } catch (err) { keyMsg(err.message, false); }
+  e.target.disabled = false;
+};
+
+$('#testKey').onclick = async e => {
+  e.target.disabled = true; keyMsg('Testing…', true);
+  try {
+    const j = await (await fetch('/api/ai/test', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'})).json();
+    keyMsg(j.message, j.ok);
+  } catch (err) { keyMsg('Could not reach the server.', false); }
+  e.target.disabled = false;
+};
+
+(async () => {
+  try { await initConfig(); await loadStats(); }
+  catch (e) {
+    const pill = $('#aiPill');
+    pill.textContent = 'server not reachable';
+    pill.style.color = 'var(--high)'; pill.style.borderColor = 'var(--high)';
+    $('.wrap').insertAdjacentHTML('afterbegin', `<div class="note">
+      <b>Can't reach the SecureAI server.</b> This page only works when opened through the Python app.
+      Run <code>python app.py</code> in the terminal, keep it running, then open
+      <code>http://localhost:5000</code> in your browser (page address now: <code>${esc(location.href)}</code>).</div>`);
+  }
 })();
 </script>
 </body>
