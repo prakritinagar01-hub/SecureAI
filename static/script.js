@@ -208,3 +208,113 @@ function updateDashboard(riskLevel, scanType) {
 
     activityList.prepend(activity);
 }
+
+// =====================================
+// SCAN HISTORY
+// =====================================
+
+async function loadScanHistory() {
+    const historyList = document.getElementById("historyList");
+
+    historyList.innerHTML = "<p>Loading scan history...</p>";
+
+    try {
+        const response = await fetch("/api/history");
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error("Unable to load scan history");
+        }
+
+        if (data.history.length === 0) {
+            historyList.innerHTML =
+                '<p class="history-empty">No scans found yet.</p>';
+            return;
+        }
+
+        const rows = data.history.map(scan => {
+            const risk = (scan.risk_level || "Unknown").toLowerCase();
+
+            const riskClass = ["high", "medium", "low"].includes(risk)
+                ? `risk-${risk}`
+                : "";
+
+            const safeInput = escapeHTML(scan.scanned_input || "");
+            const safeType = escapeHTML(scan.scan_type || "");
+            const safeDate = escapeHTML(scan.created_at || "");
+            const safeRisk = escapeHTML(scan.risk_level || "Unknown");
+
+            return `
+                <tr>
+                    <td>${scan.id}</td>
+                    <td>${safeType}</td>
+                    <td title="${safeInput}">${safeInput.slice(0, 35)}${safeInput.length > 35 ? "..." : ""}</td>
+                    <td><span class="risk-badge ${riskClass}">${safeRisk}</span></td>
+                    <td>${Number(scan.risk_score) || 0}</td>
+                    <td>${safeDate}</td>
+                </tr>
+            `;
+        }).join("");
+
+        historyList.innerHTML = `
+            <div class="history-table-wrapper">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Type</th>
+                            <th>Input</th>
+                            <th>Risk</th>
+                            <th>Score</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+        `;
+
+    } catch (error) {
+        historyList.innerHTML =
+            `<p class="history-empty">${escapeHTML(error.message)}</p>`;
+    }
+}
+
+// Safely display untrusted database text
+function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[character]);
+}
+
+// Load history when page opens
+document.addEventListener("DOMContentLoaded", loadScanHistory);
+
+// =====================================
+// LOAD PERSISTENT DASHBOARD STATISTICS
+// =====================================
+
+async function loadDashboardStats() {
+    try {
+        const response = await fetch("/api/dashboard-stats");
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error("Unable to load dashboard statistics");
+        }
+
+        document.getElementById("totalScans").textContent = data.total;
+        document.getElementById("highScans").textContent = data.high;
+        document.getElementById("mediumScans").textContent = data.medium;
+        document.getElementById("lowScans").textContent = data.low;
+
+    } catch (error) {
+        console.error("Dashboard statistics error:", error);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", loadDashboardStats);

@@ -1,92 +1,258 @@
+# pyright: reportMissingImports=false
 
+try:
+    from flask import Flask, render_template, request, jsonify
+except ModuleNotFoundError as exc:
+    raise RuntimeError(
+        "Flask is required to run SecureAI. Install dependencies with: "
+        "pip install -r requirements.txt"
+    ) from exc
 
-from flask import Flask, render_template, request, jsonify
-import requests
-from urllib.parse import urlparse
+import os
 import re
 import sqlite3
 from datetime import datetime
+from urllib.parse import urlparse
+
+import requests
+from dotenv import load_dotenv
+
 
 app = Flask(__name__)
+
+
+# =====================================
+# ENVIRONMENT / GROQ CONFIGURATION
+# =====================================
+
+load_dotenv()
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
+
+
 # =====================================
 # DATABASE SETUP
 # =====================================
 
-DATABASE = "secureai.db"
+DATABASE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "secureai.db"
+)
+
 
 def init_db():
-    conn = sqlite3.connect(DATABASE)
+    """Create the scans table if it does not already exist."""
+    with sqlite3.connect(DATABASE) as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS scans (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                scan_type TEXT NOT NULL,
+                scanned_input TEXT NOT NULL,
+                risk_level TEXT,
+                risk_score INTEGER,
+                analysis TEXT,
+                created_at TEXT
+            )
+        """)
 
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS scans (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            scan_type TEXT NOT NULL,
-            scanned_input TEXT NOT NULL,
-            risk_level TEXT,
-            risk_score INTEGER,
-            analysis TEXT,
-            created_at TEXT
-        )
-    """)
 
-    conn.commit()
-    conn.close()
+
+def extract_risk_details(analysis):
+    """Extract risk level and score from plain text, Markdown and tables."""
+
+    if not isinstance(analysis, str):
+        return "Unknown", 0
+
+    cleaned = analysis
+
+    # Convert HTML breaks into new lines
+    cleaned = re.sub(
+        r"<br\s*/?>",
+        "\n",
+        cleaned,
+        flags=re.IGNORECASE
+    )
+
+    # Remove Markdown table separators
+    cleaned = cleaned.replace("|", "\n")
+
+    # Remove Markdown formatting
+    cleaned = re.sub(r"[*`_#>]", "", cleaned)
+
+    # Normalize whitespace and dashes
+    cleaned = cleaned.replace("\u2013", "-")
+    cleaned = cleaned.replace("\u2011", "-")
+    cleaned = re.sub(r"[ \t]+", " ", cleaned)
+
+    # Extract Risk Level
+    risk_match = re.search(
+        r"(?im)^\s*(?:\d+\.\s*)?Risk\s+Level\b[^\n]*\n?\s*(High|Medium|Low)\b",
+        cleaned
+    )
+
+    # Extract Risk Score
+    score_match = re.search(
+        r"(?im)^\s*(?:\d+\.\s*)?Risk\s+Score(?:\s*\([^)]*\))?\s*:?\s*(?:\n\s*)?(\d{1,3})\b",
+        cleaned
+    )
+
+    risk_level = (
+        risk_match.group(1).capitalize()
+        if risk_match else "Unknown"
+    )
+
+    risk_score = (
+        max(0, min(100, int(score_match.group(1))))
+        if score_match else 0
+    )
+
+    return risk_level, risk_score
+
 
 
 def save_scan(scan_type, scanned_input, analysis):
-    risk_match = re.search(
-        r"Risk Level:\s*(High|Medium|Low)",
-        analysis,
-        re.IGNORECASE
-    )
+    """Save a scan and its extracted risk details to SQLite."""
+    risk_level, risk_score = extract_risk_details(analysis)
 
-    score_match = re.search(
-        r"Risk Score:\s*(\d+)",
-        analysis,
-        re.IGNORECASE
-    )
-
-    risk_level = risk_match.group(1).capitalize() if risk_match else "Unknown"
-    risk_score = int(score_match.group(1)) if score_match else 0
-
-    conn = sqlite3.connect(DATABASE)
-
-    conn.execute("""
-        INSERT INTO scans
-        (scan_type, scanned_input, risk_level, risk_score, analysis, created_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (
-        scan_type,
-        scanned_input,
-        risk_level,
-        risk_score,
-        analysis,
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    ))
-
-    conn.commit()
-    conn.close()
+    with sqlite3.connect(DATABASE) as conn:
+        conn.execute("""
+            INSERT INTO scans
+            (scan_type, scanned_input, risk_level, risk_score, analysis, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            scan_type,
+            scanned_input,
+            risk_level,
+            risk_score,
+            analysis,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ))
 
 
+# Initialize the database when the application starts.
 init_db()
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL = "qwen2.5:1.5b"
 
+# =====================================
+# GROQ AI HELPER
+# =====================================
+
+def ask_groq(prompt):
+    if not GROQ_API_KEY:
+        raise RuntimeError(
+            "Groq API key is missing. Add GROQ_API_KEY to your .env file "
+            "or Render environment variables."
+        )
+
+    response = requests.post(
+        GROQ_API_URL,
+        headers={
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Content-Type": "application/json"
+        },
+        json={
+            "model": GROQ_MODEL,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            "temperature": 0.3,
+            "max_completion_tokens": 1500
+        },
+        timeout=90
+    )
+    response.raise_for_status()
+
+    try:
+        result = response.json()
+        output = result["choices"][0]["message"]["content"]
+    except (ValueError, KeyError, IndexError, TypeError):
+        raise ValueError("Groq returned an unexpected or invalid response.")
+
+    if isinstance(output, list):
+        output = "\n".join(
+            item.get("text", "")
+            for item in output
+            if isinstance(item, dict)
+        )
+
+    if not isinstance(output, str) or not output.strip():
+        raise ValueError("Groq returned an empty response.")
+
+    return output.strip()
+
+
+def handle_groq_error(error, action):
+    """Return a consistent JSON error response for Groq/API failures."""
+    if isinstance(error, requests.exceptions.Timeout):
+        return jsonify({
+            "error": f"Groq {action} timed out. Please try again."
+        }), 504
+
+    if isinstance(error, requests.exceptions.HTTPError):
+        response = error.response
+        details = response.text[:500] if response is not None else str(error)
+        return jsonify({
+            "error": f"Groq API error: {details}"
+        }), 502
+
+    if isinstance(error, RuntimeError):
+        return jsonify({"error": str(error)}), 503
+
+    if isinstance(error, ValueError):
+        return jsonify({"error": str(error)}), 502
+
+    if isinstance(error, requests.exceptions.RequestException):
+        return jsonify({
+            "error": (
+                "Unable to connect to Groq API. "
+                "Check your internet connection and try again."
+            )
+        }), 503
+
+    return jsonify({
+        "error": f"An unexpected error occurred during {action}."
+    }), 500
+
+
+def get_json_data():
+    """Safely read a JSON object from the incoming request."""
+    data = request.get_json(silent=True)
+    return data if isinstance(data, dict) else {}
+
+
+# =====================================
+# HOME
+# =====================================
 
 @app.route("/")
 def home():
     return render_template("index.html")
 
 
+# =====================================
+# MESSAGE ANALYSIS API
+# =====================================
+
 @app.route("/api/analyze", methods=["POST"])
 def analyze():
+    data = get_json_data()
+    message = data.get("message", "")
 
-    data = request.get_json()
-    message = data.get("message", "").strip()
+    if not isinstance(message, str):
+        return jsonify({"error": "Message must be text."}), 400
+
+    message = message.strip()
 
     if not message:
         return jsonify({"error": "Please enter a message."}), 400
+
+    if len(message) > 5000:
+        return jsonify({"error": "Message must be 5000 characters or fewer."}), 400
 
     prompt = f"""
 You are SecureAI, an expert cybersecurity assistant.
@@ -114,19 +280,7 @@ without sufficient evidence.
 """
 
     try:
-        response = requests.post(
-            OLLAMA_URL,
-            json={
-                "model": MODEL,
-                "prompt": prompt,
-                "stream": False
-            },
-            timeout=120
-        )
-
-        response.raise_for_status()
-
-        result = response.json()["response"]
+        result = ask_groq(prompt)
         save_scan("Message Scan", message, result)
 
         return jsonify({
@@ -134,29 +288,29 @@ without sufficient evidence.
             "analysis": result
         })
 
-    except requests.exceptions.ConnectionError:
-        return jsonify({
-            "error": "Ollama is not running. Start Ollama first."
-        }), 503
-
-    except requests.exceptions.Timeout:
-        return jsonify({
-            "error": "AI response timed out. Try again."
-        }), 504
-
-    except requests.exceptions.RequestException as error:
-        return jsonify({
-            "error": f"Ollama request failed: {str(error)}"
-        }), 502
+    except (
+        requests.exceptions.Timeout,
+        requests.exceptions.HTTPError,
+        requests.exceptions.RequestException,
+        RuntimeError,
+        ValueError
+    ) as error:
+        return handle_groq_error(error, "message analysis")
 
 
-
+# =====================================
+# URL SCANNER API
+# =====================================
 
 @app.route("/api/scan-url", methods=["POST"])
 def scan_url():
+    data = get_json_data()
+    url = data.get("url", "")
 
-    data = request.get_json(silent=True) or {}
-    url = data.get("url", "").strip()
+    if not isinstance(url, str):
+        return jsonify({"error": "URL must be text."}), 400
+
+    url = url.strip()
 
     if not url:
         return jsonify({"error": "Please enter a URL."}), 400
@@ -195,32 +349,23 @@ whether a website is actually malicious.
 """
 
     try:
-        response = requests.post(
-            OLLAMA_URL,
-            json={
-                "model": MODEL,
-                "prompt": prompt,
-                "stream": False
-            },
-            timeout=120
-        )
-
-        response.raise_for_status()
-
-        analysis = response.json()["response"]
-
-        save_scan("URL Scan", url, analysis)
+        result = ask_groq(prompt)
+        save_scan("URL Scan", url, result)
 
         return jsonify({
-              "success": True,
-               "url": url,
-               "analysis": analysis
-       }) 
-    except requests.exceptions.RequestException:
-        return jsonify({
-            "error": "Unable to connect to the AI engine."
-        }), 503
+            "success": True,
+            "url": url,
+            "analysis": result
+        })
 
+    except (
+        requests.exceptions.Timeout,
+        requests.exceptions.HTTPError,
+        requests.exceptions.RequestException,
+        RuntimeError,
+        ValueError
+    ) as error:
+        return handle_groq_error(error, "URL analysis")
 
 
 # ==========================================
@@ -229,9 +374,13 @@ whether a website is actually malicious.
 
 @app.route("/api/security-lab", methods=["POST"])
 def security_lab():
+    data = get_json_data()
+    prompt_input = data.get("prompt", "")
 
-    data = request.get_json(silent=True) or {}
-    prompt_input = data.get("prompt", "").strip()
+    if not isinstance(prompt_input, str):
+        return jsonify({"error": "Prompt must be text."}), 400
+
+    prompt_input = prompt_input.strip()
 
     if not prompt_input:
         return jsonify({
@@ -285,39 +434,80 @@ Do not assume every unusual prompt is malicious.
 """
 
     try:
-
-        response = requests.post(
-            OLLAMA_URL,
-            json={
-                "model": MODEL,
-                "prompt": security_prompt,
-                "stream": False
-            },
-            timeout=120
-        )
-
-        response.raise_for_status()
-
-        analysis = response.json()["response"]
-        save_scan("AI Security Test", prompt_input, analysis)
-        
+        result = ask_groq(security_prompt)
+        save_scan("AI Security Test", prompt_input, result)
 
         return jsonify({
             "success": True,
-            "analysis": analysis
+            "analysis": result
         })
 
-    except requests.exceptions.Timeout:
+    except (
+        requests.exceptions.Timeout,
+        requests.exceptions.HTTPError,
+        requests.exceptions.RequestException,
+        RuntimeError,
+        ValueError
+    ) as error:
+        return handle_groq_error(error, "security analysis")
 
-        return jsonify({
-            "error": "AI analysis timed out. Try again."
-        }), 504
 
-    except requests.exceptions.RequestException:
+# =====================================
+# SCAN HISTORY API
+# =====================================
 
-        return jsonify({
-            "error": "Unable to connect to Ollama."
-        }), 503
+@app.route("/api/history", methods=["GET"])
+def get_scan_history():
+    with sqlite3.connect(DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
+
+        scans = conn.execute("""
+            SELECT id, scan_type, scanned_input,
+                   risk_level, risk_score, analysis, created_at
+            FROM scans
+            ORDER BY id DESC
+            LIMIT 20
+        """).fetchall()
+
+    history = [dict(scan) for scan in scans]
+
+    return jsonify({
+        "success": True,
+        "total": len(history),
+        "history": history
+    })
+
+
+# =====================================
+# DASHBOARD STATISTICS API
+# =====================================
+
+@app.route("/api/dashboard-stats", methods=["GET"])
+def dashboard_stats():
+    with sqlite3.connect(DATABASE) as conn:
+        stats = conn.execute("""
+            SELECT
+                COUNT(*) AS total,
+                SUM(CASE WHEN LOWER(risk_level) = 'high' THEN 1 ELSE 0 END),
+                SUM(CASE WHEN LOWER(risk_level) = 'medium' THEN 1 ELSE 0 END),
+                SUM(CASE WHEN LOWER(risk_level) = 'low' THEN 1 ELSE 0 END)
+            FROM scans
+        """).fetchone()
+
+    return jsonify({
+        "success": True,
+        "total": stats[0] or 0,
+        "high": stats[1] or 0,
+        "medium": stats[2] or 0,
+        "low": stats[3] or 0
+    })
+
+
+# =====================================
+# RUN APPLICATION
+# =====================================
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Render supplies its own PORT environment variable.
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
