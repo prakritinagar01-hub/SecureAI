@@ -571,3 +571,35 @@ function updateRiskChart(data) {
 }
 // Load dashboard statistics when the page opens
 loadDashboardStats();
+
+// =====================================
+// MOBILE SIDEBAR TOGGLE
+// =====================================
+
+const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+const sidebar = document.querySelector(".sidebar");
+
+if (mobileMenuBtn && sidebar) {
+
+    mobileMenuBtn.addEventListener("click", function () {
+
+        sidebar.classList.toggle("active");
+
+        mobileMenuBtn.textContent =
+            sidebar.classList.contains("active") ? "✕" : "☰";
+
+    });
+
+    // Close sidebar after clicking a navigation link
+    document.querySelectorAll(".sidebar-nav .nav-link").forEach(link => {
+
+        link.addEventListener("click", function () {
+
+            sidebar.classList.remove("active");
+            mobileMenuBtn.textContent = "☰";
+
+        });
+
+    });
+
+}
