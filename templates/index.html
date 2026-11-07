@@ -353,6 +353,10 @@
                     </div>
 
                     <div id="result" class="result hidden"></div>
+                    <button id="messagePdfBtn" class="secondary-btn pdf-download-btn hidden"
+        onclick="downloadScanPDF('message')">
+    ↓ Download PDF Report
+</button>
                 </div>
 
             </section>
@@ -404,6 +408,10 @@
                     </div>
 
                     <div id="urlResult" class="result hidden"></div>
+                    <button id="urlPdfBtn" class="secondary-btn pdf-download-btn hidden"
+        onclick="downloadScanPDF('url')">
+    ↓ Download PDF Report
+</button>
 
                 </div>
 
@@ -477,6 +485,10 @@
                     </div>
 
                     <div id="securityResult" class="result hidden"></div>
+                    <button id="securityPdfBtn" class="secondary-btn pdf-download-btn hidden"
+        onclick="downloadScanPDF('security')">
+    ↓ Download PDF Report
+</button>
 
                 </div>
 
@@ -495,6 +507,7 @@
 
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/jspdf.umd.min.js') }}"></script>
 <script src="{{ url_for('static', filename='script.js') }}"></script>
 
 </body>
