@@ -1138,4 +1138,25 @@ a {
     }
 }
 
+/* =====================================
+   DASHBOARD ANALYTICS CHART
+===================================== */
+
+.analytics-panel {
+    margin-bottom: 25px;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    height: 320px;
+    margin: 10px auto;
+}
+
+@media (max-width: 560px) {
+    .chart-container {
+        height: 260px;
+    }
+}
 

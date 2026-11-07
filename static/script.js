@@ -169,31 +169,7 @@ let dashboardStats = {
     medium: 0,
     low: 0
 };
-
 function updateDashboard(riskLevel, scanType) {
-    const risk = riskLevel.toLowerCase();
-
-    dashboardStats.total++;
-
-    if (risk.includes("high")) {
-        dashboardStats.high++;
-    } else if (risk.includes("medium")) {
-        dashboardStats.medium++;
-    } else {
-        dashboardStats.low++;
-    }
-
-    document.getElementById("totalScans").textContent =
-        dashboardStats.total;
-
-    document.getElementById("highScans").textContent =
-        dashboardStats.high;
-
-    document.getElementById("mediumScans").textContent =
-        dashboardStats.medium;
-
-    document.getElementById("lowScans").textContent =
-        dashboardStats.low;
 
     const activityList = document.getElementById("activityList");
 
@@ -207,9 +183,13 @@ function updateDashboard(riskLevel, scanType) {
     `;
 
     activityList.prepend(activity);
+
+    // Refresh actual database statistics and chart
+    loadDashboardStats();
+
+    // Refresh scan history
+    loadScanHistory();
 }
-
-
 // =====================================
 // SCAN HISTORY — SEARCH, FILTER & EXPORT
 // =====================================
@@ -230,6 +210,7 @@ async function loadScanHistory() {
         }
 
         allHistoryScans = data.history || [];
+        renderRecentActivity();
         renderScanHistory();
 
     } catch (error) {
@@ -238,6 +219,37 @@ async function loadScanHistory() {
     }
 }
 
+// =====================================
+// RECENT SECURITY ACTIVITY
+// =====================================
+
+function renderRecentActivity() {
+
+    const activityList = document.getElementById("activityList");
+
+    const recentScans = allHistoryScans.slice(0, 5);
+
+    if (recentScans.length === 0) {
+        activityList.innerHTML = "<p>No scans performed yet.</p>";
+        return;
+    }
+
+    activityList.innerHTML = recentScans.map(scan => {
+
+        const type = escapeHTML(scan.scan_type || "Security Scan");
+        const risk = escapeHTML(scan.risk_level || "Unknown");
+        const date = escapeHTML(scan.created_at || "");
+
+        return `
+            <div class="activity-item">
+                <strong>${type}</strong>
+                <span> — ${risk} Risk</span>
+                <small>${date}</small>
+            </div>
+        `;
+
+    }).join("");
+}
 
 // DISPLAY HISTORY
 function renderScanHistory() {
@@ -444,6 +456,12 @@ function exportScanHistory() {
 // LOAD PERSISTENT DASHBOARD STATISTICS
 // =====================================
 
+// =====================================
+// DASHBOARD ANALYTICS
+// =====================================
+
+let riskChart = null;
+
 async function loadDashboardStats() {
     try {
         const response = await fetch("/api/dashboard-stats");
@@ -457,10 +475,99 @@ async function loadDashboardStats() {
         document.getElementById("highScans").textContent = data.high;
         document.getElementById("mediumScans").textContent = data.medium;
         document.getElementById("lowScans").textContent = data.low;
+        
+        console.log("Dashboard Data:", data);
+        updateRiskChart(data);
 
     } catch (error) {
         console.error("Dashboard statistics error:", error);
     }
 }
 
-document.addEventListener("DOMContentLoaded", loadDashboardStats);
+
+
+// CREATE RISK DISTRIBUTION CHART
+function updateRiskChart(data) {
+
+    const canvas = document.getElementById("riskChart");
+
+    if (!canvas || typeof Chart === "undefined") {
+        console.error("Chart.js or chart canvas not found.");
+        return;
+    }
+
+    if (riskChart) {
+        riskChart.destroy();
+    }
+
+    // CENTER TEXT PLUGIN
+    const centerText = {
+        id: "centerText",
+
+        afterDraw(chart) {
+            const { ctx, chartArea } = chart;
+
+            if (!chartArea) return;
+
+            const centerX = (chartArea.left + chartArea.right) / 2;
+            const centerY = (chartArea.top + chartArea.bottom) / 2;
+
+            ctx.save();
+
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            ctx.font = "bold 28px Arial";
+            ctx.fillStyle = "#182235";
+            ctx.fillText(data.total, centerX, centerY - 10);
+
+            ctx.font = "13px Arial";
+            ctx.fillStyle = "#64748b";
+            ctx.fillText("Total Scans", centerX, centerY + 18);
+
+            ctx.restore();
+        }
+    };
+
+    riskChart = new Chart(canvas, {
+        type: "doughnut",
+
+        data: {
+            labels: ["High Risk", "Medium Risk", "Low Risk"],
+
+            datasets: [{
+                data: [
+                    data.high,
+                    data.medium,
+                    data.low
+                ],
+
+                backgroundColor: [
+                    "#ef4444",
+                    "#f59e0b",
+                    "#10b981"
+                ],
+
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            plugins: {
+                legend: {
+                    position: "bottom"
+                }
+            },
+
+            cutout: "70%"
+        },
+
+        plugins: [centerText]
+    });
+}
+// Load dashboard statistics when the page opens
+loadDashboardStats();

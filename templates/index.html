@@ -159,7 +159,22 @@
 
                 </div>
 
+<!-- ANALYTICS CHART -->
+<div class="activity-panel analytics-panel">
 
+    <div class="panel-heading">
+        <div>
+            <span class="section-label">SECURITY ANALYTICS</span>
+            <h2>Risk Distribution</h2>
+            <p class="muted-text">Overview of detected security risks</p>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="riskChart"></canvas>
+    </div>
+
+</div>
                 <!-- QUICK ACTIONS -->
                 <div class="section-heading">
                     <div>
@@ -468,7 +483,7 @@
     </div>
 
 </div>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="{{ url_for('static', filename='script.js') }}"></script>
 
 </body>
