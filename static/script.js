@@ -209,9 +209,12 @@ function updateDashboard(riskLevel, scanType) {
     activityList.prepend(activity);
 }
 
+
 // =====================================
-// SCAN HISTORY
+// SCAN HISTORY — SEARCH, FILTER & EXPORT
 // =====================================
+
+let allHistoryScans = [];
 
 async function loadScanHistory() {
     const historyList = document.getElementById("historyList");
@@ -226,53 +229,8 @@ async function loadScanHistory() {
             throw new Error("Unable to load scan history");
         }
 
-        if (data.history.length === 0) {
-            historyList.innerHTML =
-                '<p class="history-empty">No scans found yet.</p>';
-            return;
-        }
-
-        const rows = data.history.map(scan => {
-            const risk = (scan.risk_level || "Unknown").toLowerCase();
-
-            const riskClass = ["high", "medium", "low"].includes(risk)
-                ? `risk-${risk}`
-                : "";
-
-            const safeInput = escapeHTML(scan.scanned_input || "");
-            const safeType = escapeHTML(scan.scan_type || "");
-            const safeDate = escapeHTML(scan.created_at || "");
-            const safeRisk = escapeHTML(scan.risk_level || "Unknown");
-
-            return `
-                <tr>
-                    <td>${scan.id}</td>
-                    <td>${safeType}</td>
-                    <td title="${safeInput}">${safeInput.slice(0, 35)}${safeInput.length > 35 ? "..." : ""}</td>
-                    <td><span class="risk-badge ${riskClass}">${safeRisk}</span></td>
-                    <td>${Number(scan.risk_score) || 0}</td>
-                    <td>${safeDate}</td>
-                </tr>
-            `;
-        }).join("");
-
-        historyList.innerHTML = `
-            <div class="history-table-wrapper">
-                <table class="history-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Type</th>
-                            <th>Input</th>
-                            <th>Risk</th>
-                            <th>Score</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rows}</tbody>
-                </table>
-            </div>
-        `;
+        allHistoryScans = data.history || [];
+        renderScanHistory();
 
     } catch (error) {
         historyList.innerHTML =
@@ -280,7 +238,97 @@ async function loadScanHistory() {
     }
 }
 
-// Safely display untrusted database text
+
+// DISPLAY HISTORY
+function renderScanHistory() {
+    const historyList = document.getElementById("historyList");
+
+    const searchValue =
+        (document.getElementById("historySearch")?.value || "")
+        .toLowerCase()
+        .trim();
+
+    const riskValue =
+        document.getElementById("riskFilter")?.value || "all";
+
+    const typeValue =
+        document.getElementById("typeFilter")?.value || "all";
+
+    const filteredScans = allHistoryScans.filter(scan => {
+
+        const input = String(scan.scanned_input || "").toLowerCase();
+        const type = String(scan.scan_type || "").toLowerCase();
+        const risk = String(scan.risk_level || "Unknown").toLowerCase();
+
+        const matchesSearch =
+            input.includes(searchValue) || type.includes(searchValue);
+
+        const matchesRisk =
+            riskValue === "all" || risk === riskValue.toLowerCase();
+
+        const matchesType =
+            typeValue === "all" || type === typeValue.toLowerCase();
+           return matchesSearch && matchesRisk && matchesType;
+    });
+
+    if (filteredScans.length === 0) {
+        historyList.innerHTML =
+            '<p class="history-empty">No matching scans found.</p>';
+        return;
+    }
+
+    const rows = filteredScans.map(scan => {
+        const risk = (scan.risk_level || "Unknown").toLowerCase();
+
+        const riskClass = ["high", "medium", "low"].includes(risk)
+            ? `risk-${risk}`
+            : "";
+
+        const safeInput = escapeHTML(scan.scanned_input || "");
+        const safeType = escapeHTML(scan.scan_type || "");
+        const safeDate = escapeHTML(scan.created_at || "");
+        const safeRisk = escapeHTML(scan.risk_level || "Unknown");
+
+        return `
+            <tr>
+                <td>${Number(scan.id) || 0}</td>
+                <td>${safeType}</td>
+                <td title="${safeInput}">
+                    ${safeInput.slice(0, 35)}${safeInput.length > 35 ? "..." : ""}
+                </td>
+                <td>
+                    <span class="risk-badge ${riskClass}">${safeRisk}</span>
+                </td>
+                <td>${Number(scan.risk_score) || 0}</td>
+                <td>${safeDate}</td>
+            </tr>
+        `;
+    }).join("");
+
+    historyList.innerHTML = `
+        <div class="history-table-wrapper">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Type</th>
+                        <th>Input</th>
+                        <th>Risk</th>
+                        <th>Score</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
+        <p class="history-empty">
+            Showing ${filteredScans.length} of ${allHistoryScans.length} scans
+        </p>
+    `;
+}
+
+
+// SAFELY DISPLAY UNTRUSTED DATABASE TEXT
 function escapeHTML(value) {
     return String(value).replace(/[&<>"']/g, character => ({
         "&": "&amp;",
@@ -291,8 +339,106 @@ function escapeHTML(value) {
     })[character]);
 }
 
-// Load history when page opens
-document.addEventListener("DOMContentLoaded", loadScanHistory);
+
+// SEARCH AND FILTER EVENTS
+document.addEventListener("DOMContentLoaded", () => {
+
+    loadScanHistory();
+
+    document.getElementById("historySearch")
+        ?.addEventListener("input", renderScanHistory);
+
+    document.getElementById("riskFilter")
+        ?.addEventListener("change", renderScanHistory);
+
+    document.getElementById("typeFilter")
+        ?.addEventListener("change", renderScanHistory);
+
+    document.getElementById("exportHistory")
+        ?.addEventListener("click", exportScanHistory);
+});
+
+
+// EXPORT FILTERED HISTORY TO CSV
+function exportScanHistory() {
+
+    const searchValue =
+        (document.getElementById("historySearch")?.value || "")
+        .toLowerCase()
+        .trim();
+
+    const riskValue =
+        document.getElementById("riskFilter")?.value || "all";
+
+    const typeValue =
+        document.getElementById("typeFilter")?.value || "all";
+
+    const filteredScans = allHistoryScans.filter(scan => {
+
+        const input = String(scan.scanned_input || "").toLowerCase();
+        const type = String(scan.scan_type || "").toLowerCase();
+        const risk = String(scan.risk_level || "Unknown").toLowerCase();
+
+        return (
+            (input.includes(searchValue) || type.includes(searchValue)) &&
+            (riskValue === "all" || risk === riskValue.toLowerCase()) &&
+            (typeValue === "all" || type === typeValue.toLowerCase())
+        );
+    });
+
+    if (filteredScans.length === 0) {
+        alert("No scan records available to export.");
+        return;
+    }
+
+    const csvEscape = value => {
+        let text = String(value ?? "");
+
+        // Prevent spreadsheet formula injection
+        if (/^[=+\-@\t\r]/.test(text)) {
+            text = "'" + text;
+        }
+
+        return `"${text.replace(/"/g, '""')}"`;
+    };
+
+    const headers = [
+        "ID",
+        "Scan Type",
+        "Scanned Input",
+        "Risk Level",
+        "Risk Score",
+        "Date"
+    ];
+
+    const csvRows = filteredScans.map(scan => [
+        scan.id,
+        scan.scan_type,
+        scan.scanned_input,
+        scan.risk_level,
+        scan.risk_score,
+        scan.created_at
+    ]);
+
+    const csvContent = [
+        headers,
+        ...csvRows
+    ].map(row => row.map(csvEscape).join(",")).join("\n");
+
+    const blob = new Blob(["\uFEFF" + csvContent], {
+        type: "text/csv;charset=utf-8;"
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "SecureAI_Scan_History.csv";
+    link.click();
+
+    URL.revokeObjectURL(url);
+}
+
 
 // =====================================
 // LOAD PERSISTENT DASHBOARD STATISTICS

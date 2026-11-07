@@ -234,6 +234,36 @@
                             ↻ Refresh
                         </button>
                     </div>
+                    
+<!-- HISTORY FILTERS -->
+<div class="history-controls">
+
+    <input
+        type="text"
+        id="historySearch"
+        placeholder="Search scanned messages or URLs..."
+    >
+
+    <select id="riskFilter">
+        <option value="all">All Risk Levels</option>
+        <option value="High">High Risk</option>
+        <option value="Medium">Medium Risk</option>
+        <option value="Low">Low Risk</option>
+    </select>
+
+    <select id="typeFilter">
+    <option value="all">All Scan Types</option>
+    <option value="Message Scan">Message</option>
+    <option value="URL Scan">URL</option>
+    <option value="AI Security Lab">AI Security Lab</option>
+</select>
+
+    <button id="exportHistory" class="secondary-btn">
+        ↓ Export CSV
+    </button>
+
+</div>
+
 
                     <div id="historyList">
                         <p>Loading scan history...</p>
