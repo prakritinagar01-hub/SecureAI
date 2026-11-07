@@ -603,3 +603,113 @@ if (mobileMenuBtn && sidebar) {
     });
 
 }
+
+// =====================================
+// DARK / LIGHT MODE TOGGLE
+// =====================================
+
+const themeToggleBtn = document.getElementById("themeToggle");
+
+// Load previously saved theme
+const savedTheme = localStorage.getItem("secureai-theme");
+
+if (savedTheme === "dark") {
+    document.body.classList.add("dark-mode");
+}
+
+// Set correct toggle icon
+function updateThemeIcon() {
+    if (document.body.classList.contains("dark-mode")) {
+        themeToggleBtn.textContent = "☀️";
+    } else {
+        themeToggleBtn.textContent = "🌙";
+    }
+}
+
+if (themeToggleBtn) {
+
+    updateThemeIcon();
+
+    themeToggleBtn.addEventListener("click", function () {
+
+        document.body.classList.toggle("dark-mode");
+
+        const isDark =
+            document.body.classList.contains("dark-mode");
+
+        localStorage.setItem(
+            "secureai-theme",
+            isDark ? "dark" : "light"
+        );
+
+        updateThemeIcon();
+
+    });
+
+}
+
+// =====================================
+// EXPORT SCAN HISTORY AS CSV
+// =====================================
+
+const exportHistoryBtn = document.getElementById("exportHistory");
+
+if (exportHistoryBtn) {
+
+    exportHistoryBtn.addEventListener("click", function () {
+
+        if (!allHistoryScans || allHistoryScans.length === 0) {
+            alert("No scan history available to export!");
+            return;
+        }
+
+        const headers = [
+            "ID",
+            "Scan Type",
+            "Scanned Input",
+            "Risk Level",
+            "Risk Score",
+            "Analysis",
+            "Date"
+        ];
+
+        const rows = allHistoryScans.map(scan => [
+            scan.id,
+            scan.scan_type,
+            scan.scanned_input,
+            scan.risk_level,
+            scan.risk_score,
+            scan.analysis,
+            scan.created_at
+        ]);
+
+        function escapeCSV(value) {
+            const text = String(value ?? "").replace(/"/g, '""');
+            return `"${text}"`;
+        }
+
+        const csvContent = [
+            headers,
+            ...rows
+        ].map(row => row.map(escapeCSV).join(",")).join("\n");
+
+        const blob = new Blob(
+            ["\uFEFF" + csvContent],
+            { type: "text/csv;charset=utf-8;" }
+        );
+
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+
+        link.href = url;
+        link.download = "SecureAI_Scan_History.csv";
+
+        document.body.appendChild(link);
+        link.click();
+
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+    });
+
+}

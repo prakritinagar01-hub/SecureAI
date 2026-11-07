@@ -1375,4 +1375,119 @@ select:focus-visible {
         padding-left: 65px;
     }
 }
+/* =====================================
+   DARK MODE THEME
+===================================== */
+
+.theme-toggle {
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--white);
+    color: var(--text);
+    font-size: 17px;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.theme-toggle:hover {
+    background: var(--primary-light);
+    transform: rotate(15deg);
+}
+
+/* Dark theme variables */
+
+body.dark-mode {
+    --background: #0b1120;
+    --white: #151e30;
+    --text: #e5eaf3;
+    --muted: #9aa8bd;
+    --border: #263249;
+    --primary-light: #292348;
+    --shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .topbar {
+    background: #151e30;
+    border-color: var(--border);
+}
+
+body.dark-mode .stat-card,
+body.dark-mode .quick-action,
+body.dark-mode .activity-panel,
+body.dark-mode .history-panel,
+body.dark-mode .scanner {
+    background: var(--white);
+    border-color: var(--border);
+}
+
+body.dark-mode .stat-top,
+body.dark-mode .stat-card small,
+body.dark-mode .quick-action p,
+body.dark-mode .history-table td,
+body.dark-mode .scanner label {
+    color: var(--muted);
+}
+
+body.dark-mode .scanner textarea,
+body.dark-mode .scanner input,
+body.dark-mode .history-controls input,
+body.dark-mode .history-controls select,
+body.dark-mode .attack-card {
+    background: #0f1728;
+    color: var(--text);
+    border-color: var(--border);
+}
+
+body.dark-mode .history-table th {
+    background: #1d2940;
+    color: #c0cad9;
+}
+
+body.dark-mode .history-table tr:hover td {
+    background: #1d2940;
+}
+
+body.dark-mode .result {
+    background: #0f1728;
+    border-color: var(--border);
+    color: var(--text);
+}
+
+body.dark-mode .secondary-btn {
+    background: #1d2940;
+    color: #b5a6ff;
+    border-color: #40366c;
+}
+
+body.dark-mode .tool-tag {
+    background: #292348;
+    color: #b5a6ff;
+}
+
+body.dark-mode .muted-text {
+    color: var(--muted);
+}
+
+body.dark-mode .breadcrumb strong,
+body.dark-mode .section-heading h2,
+body.dark-mode .panel-heading h2,
+body.dark-mode .scanner-title h2,
+body.dark-mode .quick-action h3 {
+    color: var(--text);
+}
+
+body.dark-mode .attack-card strong {
+    color: #d1d9e6;
+}
+
+body.dark-mode .analytics-panel {
+    background: var(--white);
+}
+
+body.dark-mode .scanner textarea:focus,
+body.dark-mode .scanner input:focus {
+    background: #151e30;
+}
 
