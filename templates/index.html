@@ -288,6 +288,10 @@
         ↓ Export CSV
     </button>
 
+    <button id="bulkDeleteBtn" class="delete-scan-btn">
+    Delete Selected
+</button>
+
 </div>
 
 
@@ -506,9 +510,34 @@
     </div>
 
 </div>
+
+
+
+<!-- SCAN DETAILS MODAL -->
+<div id="scanDetailsModal" class="scan-modal hidden">
+    <div class="scan-modal-content">
+        <button id="closeScanModal"type="button" class="scan-modal-close">&times;</button>
+
+        <h2>Scan Details</h2>
+
+        <div class="scan-detail-grid">
+            <p><strong>Scan ID:</strong> <span id="detailId"></span></p>
+            <p><strong>Scan Type:</strong> <span id="detailType"></span></p>
+            <p><strong>Risk Level:</strong> <span id="detailRisk"></span></p>
+            <p><strong>Risk Score:</strong> <span id="detailScore"></span></p>
+            <p><strong>Date:</strong> <span id="detailDate"></span></p>
+        </div>
+
+        <h3>Scanned Input</h3>
+        <pre id="detailInput"></pre>
+
+        <h3>Full AI Analysis</h3>
+        <pre id="detailAnalysis"></pre>
+    </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="{{ url_for('static', filename='js/jspdf.umd.min.js') }}"></script>
 <script src="{{ url_for('static', filename='script.js') }}"></script>
-
 </body>
 </html>

@@ -90,7 +90,15 @@ async function scanURL() {
         }
 
         result.textContent =
-            "URL: " + data.url + "\n\n" + data.analysis;
+    "URL: " + data.url + "\n\n" + data.analysis;
+
+latestScanReports.url = {
+    type: "URL Scan",
+    input: url,
+    analysis: data.analysis
+};
+
+document.getElementById("urlPdfBtn").classList.remove("hidden");
             const riskMatch = data.analysis.match(/Risk Level:\s*(High|Medium|Low)/i);
 
 if (riskMatch) {
@@ -158,7 +166,7 @@ async function testAISecurity() {
 
 document.getElementById("securityPdfBtn").classList.remove("hidden");
 
-document.getElementById("urlPdfBtn").classList.remove("hidden");
+
         const riskMatch = data.analysis.match(/Risk Level:\s*(High|Medium|Low)/i);
         if (riskMatch) updateDashboard(riskMatch[1], "AI Security Test");
         result.classList.remove("hidden");
@@ -319,8 +327,13 @@ const rows = filteredScans.map(scan => {
     const safeRisk = escapeHTML(scan.risk_level || "Unknown");
 
     return `
-        <tr>
-            <td>${Number(scan.id) || 0}</td>
+    <tr>
+        <td>
+            <input type="checkbox"
+                   class="scan-select-checkbox"
+                   value="${Number(scan.id) || 0}">
+        </td>
+        <td>${Number(scan.id) || 0}</td>
             <td>${safeType}</td>
             <td title="${safeInput}">
                 ${safeInput.slice(0, 35)}${safeInput.length > 35 ? "..." : ""}
@@ -336,9 +349,14 @@ const rows = filteredScans.map(scan => {
     View Details
 </button>
 
+
 <button class="old-scan-pdf-btn"
         data-scan-id="${Number(scan.id) || 0}">
     Download PDF
+</button>
+<button class="delete-scan-btn"
+        data-scan-id="${Number(scan.id) || 0}">
+    Delete
 </button>
             </td>
         </tr>
@@ -352,7 +370,10 @@ const rows = filteredScans.map(scan => {
             <table class="history-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>
+    <input type="checkbox" id="selectAllScans">
+</th>
+<th>ID</th>
                         <th>Type</th>
                         <th>Input</th>
                         <th>Risk</th>
@@ -832,7 +853,95 @@ function downloadScanPDF(scanType) {
         y += Math.max(8, lines.length * 5) + 3;
     });
 
-    // Analysis section
+   // RISK LEVEL
+
+// RISK LEVEL
+
+// RISK LEVEL
+const riskLine = report.analysis
+    .split(/\r?\n/)
+    .find(line => /Risk Level/i.test(line));
+
+const riskMatch = riskLine
+    ? riskLine.match(/\b(High|Medium|Low)\b/i)
+    : null;
+
+const riskLevel = riskMatch
+    ? riskMatch[1].charAt(0).toUpperCase() +
+      riskMatch[1].slice(1).toLowerCase()
+    : "Unknown";
+
+const riskColors = {
+    High: [239, 68, 68],
+    Medium: [245, 158, 11],
+    Low: [16, 185, 129],
+    Unknown: [100, 116, 139]
+};
+
+// RISK SCORE
+const scoreLine = report.analysis
+    .split(/\r?\n/)
+    .find(line => /Risk Score/i.test(line));
+
+const scoreMatch = scoreLine
+    ? scoreLine.match(/\b(\d+)\s*\/\s*100\b/i)
+    : null;
+
+const riskScore = scoreMatch
+    ? Number(scoreMatch[1])
+    : null;
+
+
+
+// RISK BADGE
+y += 5;
+
+doc.setFillColor(...riskColors[riskLevel]);
+doc.roundedRect(margin, y - 5, 48, 11, 3, 3, "F");
+
+doc.setTextColor(255, 255, 255);
+doc.setFont("helvetica", "bold");
+doc.setFontSize(10);
+doc.text(riskLevel.toUpperCase() + " RISK", margin + 5, y + 2);
+
+// SCORE DISPLAY
+if (riskScore !== null) {
+    doc.setTextColor(30, 41, 59);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text(`Risk Score: ${riskScore}/100`, margin + 58, y + 2);
+}
+
+y += 15;
+
+// EXECUTIVE SUMMARY
+doc.setTextColor(30, 41, 59);
+doc.setFont("helvetica", "bold");
+doc.setFontSize(13);
+doc.text("Executive Summary", margin, y);
+
+y += 8;
+
+doc.setFont("helvetica", "normal");
+doc.setFontSize(10);
+doc.setTextColor(71, 85, 105);
+
+const summaryText =
+    riskLevel === "High"
+        ? "High-risk indicators detected. Avoid interacting with this content until it has been verified."
+        : riskLevel === "Medium"
+        ? "Some suspicious indicators were detected. Review the analysis carefully before taking action."
+        : riskLevel === "Low"
+        ? "No major risk indicators were detected. Continue following standard security precautions."
+        : "Risk level could not be determined. Review the detailed analysis.";
+
+const summaryLines = doc.splitTextToSize(summaryText, contentWidth);
+
+doc.text(summaryLines, margin, y);
+
+y += summaryLines.length * 5 + 8;
+    
+
     y += 5;
 
     doc.setFont("helvetica", "bold");
@@ -897,7 +1006,7 @@ document.addEventListener("click", function (event) {
 
     const button = event.target.closest(".view-scan-btn");
 
-    if (!button) return;
+if (!button) return;
 
     const scanId = Number(button.dataset.scanId);
 
@@ -926,120 +1035,178 @@ document.addEventListener("click", function (event) {
 });
 
 // CLOSE SCAN DETAILS MODAL
-const scanModal = document.getElementById("scanDetailsModal");
-const closeScanModalBtn = document.getElementById("closeScanModal");
-
-if (closeScanModalBtn && scanModal) {
-
-    closeScanModalBtn.addEventListener("click", function () {
-        scanModal.classList.add("hidden");
-    });
-
-    scanModal.addEventListener("click", function (event) {
-        if (event.target === scanModal) {
-            scanModal.classList.add("hidden");
-        }
-    });
-
-    document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") {
-            scanModal.classList.add("hidden");
-        }
-    });
-}
-
-// DOWNLOAD PDF FOR OLD SCANS
-function downloadOldScanPDF(scanId) {
-    const scan = allHistoryScans.find(
-        item => Number(item.id) === Number(scanId)
-    );
-
-    if (!scan) {
-        alert("Scan details not found!");
-        return;
-    }
-
-    if (!window.jspdf) {
-        alert("PDF library not loaded!");
-        return;
-    }
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    let y = 20;
-
-    doc.setFontSize(20);
-    doc.text("SecureAI - Security Scan Report", 15, y);
-
-    y += 15;
-    doc.setFontSize(11);
-
-    const details = [
-        `Scan ID: ${scan.id}`,
-        `Scan Type: ${scan.scan_type}`,
-        `Risk Level: ${scan.risk_level}`,
-        `Risk Score: ${scan.risk_score}/100`,
-        `Date: ${scan.created_at}`
-    ];
-
-    details.forEach(line => {
-        doc.text(line, 15, y);
-        y += 8;
-    });
-
-    y += 5;
-    doc.setFontSize(13);
-    doc.text("Scanned Input", 15, y);
-
-    y += 8;
-    doc.setFontSize(10);
-
-    const inputLines = doc.splitTextToSize(
-        String(scan.scanned_input || "No input available"),
-        180
-    );
-
-    inputLines.forEach(line => {
-        if (y > 275) {
-            doc.addPage();
-            y = 20;
-        }
-        doc.text(line, 15, y);
-        y += 6;
-    });
-
-    y += 8;
-    doc.setFontSize(13);
-    doc.text("Full AI Analysis", 15, y);
-
-    y += 8;
-    doc.setFontSize(10);
-
-    const analysisLines = doc.splitTextToSize(
-        String(scan.analysis || "No analysis available"),
-        180
-    );
-
-    analysisLines.forEach(line => {
-        if (y > 275) {
-            doc.addPage();
-            y = 20;
-        }
-        doc.text(line, 15, y);
-        y += 6;
-    });
-
-    doc.save(`SecureAI_Scan_${scan.id}_Report.pdf`);
-}
-// CONNECT OLD SCAN PDF BUTTON
 document.addEventListener("click", function (event) {
+    const closeButton = event.target.closest("#closeScanModal");
+    const modal = document.getElementById("scanDetailsModal");
 
-    const button = event.target.closest(".old-scan-pdf-btn");
+    if (!modal) return;
 
-    if (!button) return;
+    if (closeButton || event.target === modal) {
+        modal.classList.add("hidden");
+    }
+});
+
+document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+        const modal = document.getElementById("scanDetailsModal");
+
+        if (modal) {
+            modal.classList.add("hidden");
+        }
+    }
+});
+
+// =====================================
+// DELETE INDIVIDUAL SCAN
+// =====================================
+
+document.addEventListener("click", async function (event) {
+
+    const button = event.target.closest(
+    ".delete-scan-btn:not(#bulkDeleteBtn)"
+);
+
+if (!button) return;
 
     const scanId = button.dataset.scanId;
 
-    downloadOldScanPDF(scanId);
+    if (!confirm("Are you sure you want to delete this scan?")) {
+        return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Deleting...";
+
+    try {
+
+        const response = await fetch(`/api/delete-scan/${scanId}`, {
+            method: "DELETE"
+        });
+
+        const contentType = response.headers.get("content-type") || "";
+
+if (!contentType.includes("application/json")) {
+    const errorText = await response.text();
+    console.error("Non-JSON response:", response.status, errorText);
+    throw new Error(`Server returned HTML instead of JSON (Status: ${response.status})`);
+}
+
+const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || "Unable to delete scan");
+        }
+
+        alert("Scan deleted successfully!");
+
+        await loadScanHistory();
+        await loadDashboardStats();
+
+    } catch (error) {
+
+        alert("Delete failed: " + error.message);
+
+        button.disabled = false;
+        button.textContent = "Delete";
+    }
+
+});
+
+// =====================================
+// BULK DELETE SCANS
+// =====================================
+
+document.addEventListener("change", function (event) {
+
+    // SELECT ALL CHECKBOX
+    if (event.target.id === "selectAllScans") {
+
+        document.querySelectorAll(".scan-select-checkbox")
+            .forEach(checkbox => {
+                checkbox.checked = event.target.checked;
+            });
+    }
+
+    // UPDATE SELECT ALL STATUS
+    if (event.target.classList.contains("scan-select-checkbox")) {
+
+        const checkboxes = document.querySelectorAll(".scan-select-checkbox");
+        const checked = document.querySelectorAll(".scan-select-checkbox:checked");
+
+        const selectAll = document.getElementById("selectAllScans");
+
+        if (selectAll) {
+            selectAll.checked =
+                checkboxes.length > 0 &&
+                checkboxes.length === checked.length;
+        }
+    }
+});
+
+// =====================================
+// DELETE SELECTED SCANS
+// =====================================
+
+document.addEventListener("click", async function (event) {
+
+    if (event.target.id !== "bulkDeleteBtn") return;
+
+    const selectedCheckboxes = document.querySelectorAll(
+        ".scan-select-checkbox:checked"
+    );
+
+    const selectedIds = Array.from(selectedCheckboxes)
+        .map(checkbox => checkbox.value);
+
+    if (selectedIds.length === 0) {
+        alert("Please select at least one scan!");
+        return;
+    }
+
+    const confirmed = confirm(
+        `Are you sure you want to delete ${selectedIds.length} scans?`
+    );
+
+    if (!confirmed) return;
+
+    const button = event.target;
+    button.disabled = true;
+    button.textContent = "Deleting...";
+
+    try {
+
+        const results = await Promise.all(
+            selectedIds.map(id =>
+                fetch(`/api/delete-scan/${id}`, {
+                    method: "DELETE"
+                }).then(async response => {
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success) {
+                        throw new Error(data.error || `Failed to delete scan ${id}`);
+                    }
+
+                    return data;
+                })
+            )
+        );
+
+        alert(`${results.length} scans deleted successfully!`);
+
+        await loadScanHistory();
+        await loadDashboardStats();
+
+    } catch (error) {
+
+        alert("Some scans could not be deleted: " + error.message);
+
+        await loadScanHistory();
+
+    } finally {
+
+        button.disabled = false;
+        button.textContent = "Delete Selected";
+
+    }
+
 });

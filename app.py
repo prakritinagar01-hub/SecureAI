@@ -478,6 +478,31 @@ def get_scan_history():
     })
 
 
+@app.route("/api/delete-scan/<int:scan_id>", methods=["DELETE"])
+def delete_scan(scan_id):
+    conn = sqlite3.connect("secureai.db")
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "DELETE FROM scans WHERE id = ?",
+        (scan_id,)
+    )
+
+    deleted = cursor.rowcount
+    conn.commit()
+    conn.close()
+
+    if deleted == 0:
+        return jsonify({
+            "success": False,
+            "message": "Scan not found"
+        }), 404
+
+    return jsonify({
+        "success": True,
+        "message": "Scan deleted successfully"
+    })
+
 # =====================================
 # DASHBOARD STATISTICS API
 # =====================================
