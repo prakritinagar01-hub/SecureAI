@@ -305,33 +305,47 @@ function renderScanHistory() {
         return;
     }
 
-    const rows = filteredScans.map(scan => {
-        const risk = (scan.risk_level || "Unknown").toLowerCase();
+    
+const rows = filteredScans.map(scan => {
+    const risk = (scan.risk_level || "Unknown").toLowerCase();
 
-        const riskClass = ["high", "medium", "low"].includes(risk)
-            ? `risk-${risk}`
-            : "";
+    const riskClass = ["high", "medium", "low"].includes(risk)
+        ? `risk-${risk}`
+        : "";
 
-        const safeInput = escapeHTML(scan.scanned_input || "");
-        const safeType = escapeHTML(scan.scan_type || "");
-        const safeDate = escapeHTML(scan.created_at || "");
-        const safeRisk = escapeHTML(scan.risk_level || "Unknown");
+    const safeInput = escapeHTML(scan.scanned_input || "");
+    const safeType = escapeHTML(scan.scan_type || "");
+    const safeDate = escapeHTML(scan.created_at || "");
+    const safeRisk = escapeHTML(scan.risk_level || "Unknown");
 
-        return `
-            <tr>
-                <td>${Number(scan.id) || 0}</td>
-                <td>${safeType}</td>
-                <td title="${safeInput}">
-                    ${safeInput.slice(0, 35)}${safeInput.length > 35 ? "..." : ""}
-                </td>
-                <td>
-                    <span class="risk-badge ${riskClass}">${safeRisk}</span>
-                </td>
-                <td>${Number(scan.risk_score) || 0}</td>
-                <td>${safeDate}</td>
-            </tr>
-        `;
-    }).join("");
+    return `
+        <tr>
+            <td>${Number(scan.id) || 0}</td>
+            <td>${safeType}</td>
+            <td title="${safeInput}">
+                ${safeInput.slice(0, 35)}${safeInput.length > 35 ? "..." : ""}
+            </td>
+            <td>
+                <span class="risk-badge ${riskClass}">${safeRisk}</span>
+            </td>
+            <td>${Number(scan.risk_score) || 0}</td>
+            <td>${safeDate}</td>
+            <td>
+                <button class="view-scan-btn"
+        data-scan-id="${Number(scan.id) || 0}">
+    View Details
+</button>
+
+<button class="old-scan-pdf-btn"
+        data-scan-id="${Number(scan.id) || 0}">
+    Download PDF
+</button>
+            </td>
+        </tr>
+    `;
+}).join("");
+
+   
 
     historyList.innerHTML = `
         <div class="history-table-wrapper">
@@ -344,6 +358,7 @@ function renderScanHistory() {
                         <th>Risk</th>
                         <th>Score</th>
                         <th>Date</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>${rows}</tbody>
@@ -876,3 +891,155 @@ function downloadScanPDF(scanType) {
 
     doc.save(`SecureAI_${scanType}_Report.pdf`);
 }
+
+// VIEW OLD SCAN DETAILS
+document.addEventListener("click", function (event) {
+
+    const button = event.target.closest(".view-scan-btn");
+
+    if (!button) return;
+
+    const scanId = Number(button.dataset.scanId);
+
+    const scan = allHistoryScans.find(
+        item => Number(item.id) === scanId
+    );
+
+    if (!scan) {
+        alert("Scan details not found!");
+        return;
+    }
+
+    document.getElementById("detailId").textContent = scan.id;
+    document.getElementById("detailType").textContent = scan.scan_type || "Unknown";
+    document.getElementById("detailRisk").textContent = scan.risk_level || "Unknown";
+    document.getElementById("detailScore").textContent = (scan.risk_score || 0) + "/100";
+    document.getElementById("detailDate").textContent = scan.created_at || "Unknown";
+
+    document.getElementById("detailInput").textContent =
+        scan.scanned_input || "No input available";
+
+    document.getElementById("detailAnalysis").textContent =
+        scan.analysis || "No analysis available";
+
+    document.getElementById("scanDetailsModal").classList.remove("hidden");
+});
+
+// CLOSE SCAN DETAILS MODAL
+const scanModal = document.getElementById("scanDetailsModal");
+const closeScanModalBtn = document.getElementById("closeScanModal");
+
+if (closeScanModalBtn && scanModal) {
+
+    closeScanModalBtn.addEventListener("click", function () {
+        scanModal.classList.add("hidden");
+    });
+
+    scanModal.addEventListener("click", function (event) {
+        if (event.target === scanModal) {
+            scanModal.classList.add("hidden");
+        }
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            scanModal.classList.add("hidden");
+        }
+    });
+}
+
+// DOWNLOAD PDF FOR OLD SCANS
+function downloadOldScanPDF(scanId) {
+    const scan = allHistoryScans.find(
+        item => Number(item.id) === Number(scanId)
+    );
+
+    if (!scan) {
+        alert("Scan details not found!");
+        return;
+    }
+
+    if (!window.jspdf) {
+        alert("PDF library not loaded!");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    let y = 20;
+
+    doc.setFontSize(20);
+    doc.text("SecureAI - Security Scan Report", 15, y);
+
+    y += 15;
+    doc.setFontSize(11);
+
+    const details = [
+        `Scan ID: ${scan.id}`,
+        `Scan Type: ${scan.scan_type}`,
+        `Risk Level: ${scan.risk_level}`,
+        `Risk Score: ${scan.risk_score}/100`,
+        `Date: ${scan.created_at}`
+    ];
+
+    details.forEach(line => {
+        doc.text(line, 15, y);
+        y += 8;
+    });
+
+    y += 5;
+    doc.setFontSize(13);
+    doc.text("Scanned Input", 15, y);
+
+    y += 8;
+    doc.setFontSize(10);
+
+    const inputLines = doc.splitTextToSize(
+        String(scan.scanned_input || "No input available"),
+        180
+    );
+
+    inputLines.forEach(line => {
+        if (y > 275) {
+            doc.addPage();
+            y = 20;
+        }
+        doc.text(line, 15, y);
+        y += 6;
+    });
+
+    y += 8;
+    doc.setFontSize(13);
+    doc.text("Full AI Analysis", 15, y);
+
+    y += 8;
+    doc.setFontSize(10);
+
+    const analysisLines = doc.splitTextToSize(
+        String(scan.analysis || "No analysis available"),
+        180
+    );
+
+    analysisLines.forEach(line => {
+        if (y > 275) {
+            doc.addPage();
+            y = 20;
+        }
+        doc.text(line, 15, y);
+        y += 6;
+    });
+
+    doc.save(`SecureAI_Scan_${scan.id}_Report.pdf`);
+}
+// CONNECT OLD SCAN PDF BUTTON
+document.addEventListener("click", function (event) {
+
+    const button = event.target.closest(".old-scan-pdf-btn");
+
+    if (!button) return;
+
+    const scanId = button.dataset.scanId;
+
+    downloadOldScanPDF(scanId);
+});
