@@ -1,4 +1,19 @@
 
+function extractRiskLevel(analysis) {
+    const riskLine = String(analysis || "")
+        .split(/\r?\n/)
+        .find(line => /Risk Level/i.test(line));
+
+    const match = riskLine
+        ? riskLine.match(/\b(High|Medium|Low)\b/i)
+        : null;
+
+    return match
+        ? match[1].charAt(0).toUpperCase() +
+          match[1].slice(1).toLowerCase()
+        : "Unknown";
+}
+
 async function analyzeMessage() {
     const message = document.getElementById("message").value.trim();
     const result = document.getElementById("result");
@@ -37,8 +52,11 @@ async function analyzeMessage() {
 };
 
 document.getElementById("messagePdfBtn").classList.remove("hidden");
-        const riskMatch = data.analysis.match(/Risk Level:\s*(High|Medium|Low)/i);
-if (riskMatch) updateDashboard(riskMatch[1], "Message Scan");
+        const riskLevel = extractRiskLevel(data.analysis);
+if (riskLevel !== "Unknown") {
+    updateDashboard(riskLevel, "Message Scan");
+}
+
         result.classList.remove("hidden");
 
     } catch (error) {
@@ -99,13 +117,13 @@ latestScanReports.url = {
 };
 
 document.getElementById("urlPdfBtn").classList.remove("hidden");
-            const riskMatch = data.analysis.match(/Risk Level:\s*(High|Medium|Low)/i);
+            const riskLevel = extractRiskLevel(data.analysis);
 
-if (riskMatch) {
-    updateDashboard(riskMatch[1], "URL Scan");
+if (riskLevel !== "Unknown") {
+    updateDashboard(riskLevel, "URL Scan");
 }
 
-        result.classList.remove("hidden");
+    result.classList.remove("hidden");
 
     } catch (error) {
 
@@ -167,8 +185,11 @@ async function testAISecurity() {
 document.getElementById("securityPdfBtn").classList.remove("hidden");
 
 
-        const riskMatch = data.analysis.match(/Risk Level:\s*(High|Medium|Low)/i);
-        if (riskMatch) updateDashboard(riskMatch[1], "AI Security Test");
+        const riskLevel = extractRiskLevel(data.analysis);
+
+if (riskLevel !== "Unknown") {
+    updateDashboard(riskLevel, "AI Security Test");
+}
         result.classList.remove("hidden");
 
     } catch (error) {
